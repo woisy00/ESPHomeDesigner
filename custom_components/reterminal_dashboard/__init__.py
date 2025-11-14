@@ -168,6 +168,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.http.register_view(ReTerminalDashboardFontView(hass))
     _LOGGER.info("%s: Font view registered at /reterminal-dashboard/materialdesignicons-webfont.ttf", DOMAIN)
 
+    # Register as a frontend sidebar panel
+    await hass.components.frontend.async_register_built_in_panel(
+        component_name="custom",
+        sidebar_title="reTerminal",
+        sidebar_icon="mdi:monitor-dashboard",
+        frontend_url_path="reterminal-dashboard",
+        config={"_panel_custom": {"name": "panel-iframe", "embed_iframe": True, "trust_external": False}},
+        require_admin=False,
+    )
+    _LOGGER.info("%s: Frontend sidebar panel registered", DOMAIN)
+
     # Register services (idempotent)
     async_register_services(hass, storage)
 
@@ -179,11 +190,18 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.info("%s: Unloading config entry %s", DOMAIN, entry.entry_id)
 
-    # For now: if all entries are removed, clean up services.
+    # For now: if all entries are removed, clean up services and panel.
     entries = hass.config_entries.async_entries(DOMAIN)
     if len(entries) <= 1:
         async_unregister_services(hass)
         _LOGGER.debug("%s: Unregistered services (last entry unloaded)", DOMAIN)
+        
+        # Unregister the sidebar panel
+        try:
+            await hass.components.frontend.async_remove_panel("reterminal-dashboard")
+            _LOGGER.debug("%s: Frontend sidebar panel unregistered", DOMAIN)
+        except Exception as e:
+            _LOGGER.warning("%s: Failed to unregister panel: %s", DOMAIN, e)
 
     # Keep storage in memory; if you want to fully unload, you could:
     # hass.data[DOMAIN].pop("storage", None) when last entry is removed.
