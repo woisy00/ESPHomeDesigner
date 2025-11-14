@@ -1,0 +1,198 @@
+esphome:
+  name: reterminal-e1001-lambda
+  friendly_name: reTerminal E1001 Lambda
+  comment: >
+    Lambda rendering firmware for the reTerminal E1001 used with the reTerminal Dashboard
+    Designer Home Assistant integration.
+    - Renders dashboard locally using lambda display code.
+    - Exposes 3 front buttons, buzzer, onboard temperature and humidity to Home Assistant.
+    - Paste your generated display lambda code from the editor below.
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: arduino
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+logger:
+
+api:
+  encryption:
+    key: !secret reterminal_api_key
+  # Buzzer control services
+  services:
+    - service: play_tone
+      variables:
+        melody: string
+      then:
+        - rtttl.play: !lambda 'return melody;'
+
+    - service: beep_short
+      then:
+        - rtttl.play: "beep:d=32,o=5,b=200:16e6"
+
+    - service: beep_ok
+      then:
+        - rtttl.play: "ok:d=16,o=5,b=200:e6"
+
+    - service: beep_error
+      then:
+        - rtttl.play: "error:d=16,o=5,b=200:c6"
+
+ota:
+  platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "reTerminal-E1001-Setup"
+    password: "changeme123"
+
+captive_portal:
+
+time:
+  - platform: homeassistant
+    id: ha_time
+
+i2c:
+  sda: GPIO19
+  scl: GPIO20
+  scan: true
+
+spi:
+  clk_pin: GPIO7
+  mosi_pin: GPIO9
+
+# Outputs: battery enable and buzzer
+output:
+  - platform: gpio
+    pin: GPIO21
+    id: bsp_battery_enable
+
+  - platform: ledc
+    pin: GPIO45
+    id: buzzer_output
+
+# Buzzer exposed as a controllable component via HA
+rtttl:
+  id: reterminal_buzzer
+  output: buzzer_output
+
+# Onboard SHT4x temperature and humidity sensor exported to HA
+sensor:
+  - platform: sht4x
+    temperature:
+      name: "reTerminal Onboard Temperature"
+      id: onboard_temperature
+      accuracy_decimals: 1
+    humidity:
+      name: "reTerminal Onboard Humidity"
+      id: onboard_humidity
+      accuracy_decimals: 1
+    address: 0x44
+    update_interval: 60s
+
+# Front panel buttons exposed as binary_sensors to HA
+binary_sensor:
+  - platform: gpio
+    id: button_left
+    name: "reTerminal Button Left"
+    pin:
+      number: GPIO5
+      mode: INPUT_PULLUP
+      inverted: true
+    on_press:
+      then:
+        # Navigate to previous page
+        - lambda: |-
+            if (id(display_page) > 0) {
+              id(display_page) -= 1;
+            }
+        - component.update: epaper_display
+
+  - platform: gpio
+    id: button_right
+    name: "reTerminal Button Right"
+    pin:
+      number: GPIO4
+      mode: INPUT_PULLUP
+      inverted: true
+    on_press:
+      then:
+        # Navigate to next page (max 9 pages)
+        - lambda: |-
+            if (id(display_page) < 9) {
+              id(display_page) += 1;
+            }
+        - component.update: epaper_display
+
+  - platform: gpio
+    id: button_refresh
+    name: "reTerminal Button Refresh"
+    pin:
+      number: GPIO3
+      mode: INPUT_PULLUP
+      inverted: true
+    on_press:
+      then:
+        # Force display refresh
+        - component.update: epaper_display
+
+# Waveshare e-paper display 800x480 (E1001)
+display:
+  - platform: waveshare_epaper
+    id: epaper_display
+    model: 7.50inv2
+    cs_pin: GPIO10
+    dc_pin: GPIO11
+    reset_pin:
+      number: GPIO12
+      inverted: false
+    busy_pin:
+      number: GPIO13
+      inverted: true
+    update_interval: never
+    lambda: |-
+      // ========================================
+      // PASTE YOUR GENERATED DISPLAY CODE BELOW
+      // ========================================
+      // 
+      // 1. Design your dashboard in the Home Assistant visual editor
+      // 2. Click "Save Layout" to save to HA storage
+      // 3. Click "Generate Snippet" to generate ESPHome YAML
+      // 4. Copy everything from the generated snippet STARTING with:
+      //    - The globals: section (display_page, battery_glyph, page_refresh_default_s)
+      //    - The font: section (all Material Design Icons fonts)
+      //    - The sensor: section (if you have sensor_text widgets)
+      //    - The script: section (if generated)
+      //    And paste them ABOVE this display: section
+      // 5. Copy ONLY the display lambda code (everything between lambda: |- and the end)
+      //    And paste it HERE, replacing this comment block
+      //
+      // Example structure after pasting:
+      // it.fill(epd_white);
+      // if (id(display_page) == 0) {
+      //   // Page 0 widgets
+      //   it.filled_rectangle(100, 100, 200, 50, COLOR_ON);
+      //   it.print(150, 125, id(mdi_48), COLOR_OFF, TextAlign::CENTER, "\U000F0595");
+      // }
+      // else if (id(display_page) == 1) {
+      //   // Page 1 widgets
+      // }
+      //
+      // ========================================
+
+      // Temporary placeholder until you paste your code:
+      it.fill(epd_white);
+      it.printf(400, 240, TextAlign::CENTER, "Paste your generated display lambda here");
+
+# Minimal font for the placeholder message above
+# (Remove or keep this - your generated code will include proper fonts)
+font:
+  - file: "gfonts://Inter@400"
+    id: placeholder_font
+    size: 20
