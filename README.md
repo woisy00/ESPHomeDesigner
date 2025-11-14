@@ -1,16 +1,13 @@
 # reTerminal Dashboard Designer
 
-A fully local, open-source Home Assistant integration and ESPHome helper
+A fully integrated Home Assistant custom integration and ESPHome helper
 for building multi-page 800x480 dashboards on the Seeed Studio
 reTerminal E1001 (ESP32-S3 E-Ink variant).
 
 This project provides:
-- A visual layout editor (web UI) that can run:
-  - Inside Home Assistant (via this integration / HACS).
-  - Standalone/offline by opening the editor HTML directly.
-- A YAML snippet generator that:
-  - Runs on your own Home Assistant instance (when integrated).
-  - Can be approximated via a local preview when used offline.
+- A visual layout editor (web UI) running inside Home Assistant.
+- Real-time entity picker with live entity state preview.
+- A YAML snippet generator running on your Home Assistant instance.
 - A safe, additive workflow:
   - You maintain your own base ESPHome config (WiFi, API, etc).
   - The designer adds display, pages, widgets, and device exposure on top.
@@ -21,11 +18,16 @@ Core behavior:
 
 - Home Assistant custom integration (`reterminal_dashboard`) with:
   - Storage for a layout configuration (pages and widgets) in JSON.
+  - Integrated visual editor panel accessible at `/reterminal-dashboard`.
+  - Real-time entity picker with search and filtering.
+  - Live entity state preview in the visual editor canvas.
   - HTTP API endpoints (all local to Home Assistant) for:
     - `GET /api/reterminal_dashboard/layout`
       - Get the current layout JSON.
     - `POST /api/reterminal_dashboard/layout`
       - Update the layout JSON.
+    - `GET /api/reterminal_dashboard/entities`
+      - Get available Home Assistant entities for the picker.
     - `GET /api/reterminal_dashboard/snippet`
       - Generate an ESPHome YAML snippet from the stored layout.
     - `POST /api/reterminal_dashboard/import_snippet`
@@ -69,7 +71,7 @@ Core behavior:
 
 - `custom_components/reterminal_dashboard/`
   - `__init__.py`:
-    - Bootstraps the integration, initializes storage, registers HTTP API and services.
+    - Bootstraps the integration, initializes storage, registers HTTP API, services, and panel view.
   - `manifest.json`:
     - Integration metadata (HACS-compatible).
   - `const.py`:
@@ -86,21 +88,24 @@ Core behavior:
   - `http_api.py`:
     - HTTP views for:
       - `GET/POST /api/reterminal_dashboard/layout` (layout CRUD for the editor).
+      - `GET /api/reterminal_dashboard/entities` (entity list for picker).
       - `GET /api/reterminal_dashboard/snippet` (YAML snippet export).
       - `POST /api/reterminal_dashboard/import_snippet` (YAML snippet import → layout).
+  - `panel.py`:
+    - Panel view serving the visual editor at `/reterminal-dashboard`.
+    - Automatically loaded by Home Assistant when integration is installed.
   - `config_flow.py`:
     - Single-instance config flow / setup.
   - `yaml_generator.py`:
     - YAML snippet generator for the reTerminal E1001, based on the internal layout.
   - `yaml_parser.py`:
     - Server-side snippet-to-layout parser used by `/import_snippet`.
-
-- `www/reterminal_dashboard_panel/`
-  - `editor.html`:
-    - The visual layout editor UI.
-    - Supports:
-      - HA-backed mode (when served inside Home Assistant).
-      - Standalone/offline mode (when opened directly via `file://` or static hosting).
+  - `frontend/`:
+    - `editor.html`:
+      - Complete visual layout editor UI bundled with the integration.
+      - Features entity picker, live state preview, drag-drop canvas, and property editor.
+    - `materialdesignicons-webfont.ttf`:
+      - MDI icon font for widget previews.
 
 - `esphome/`
   - `reterminal_e1001_generic.yaml`:
@@ -268,16 +273,27 @@ These entities let you:
 - Trigger page changes from HA automations.
 - Use reTerminal as both a display and an input device.
 
-## Important Notes and Limitations (MVP)
+## Features
+
+- **Integrated Visual Editor**: No manual file copying required - everything is bundled with HACS installation
+- **Real Entity Picker**: Browse, search, and select from your actual Home Assistant entities
+- **Live State Preview**: See entity values update in real-time on the canvas (every 30 seconds)
+- **Multi-Page Layouts**: Create multiple pages with configurable refresh rates
+- **Drag-and-Drop**: Intuitive canvas-based layout design with snap-to-grid
+- **Comprehensive Widget Set**: Text, sensor values, MDI icons, shapes (rectangles, circles, lines)
+- **ESPHome Integration**: Generates clean, additive YAML snippets for your reTerminal
+- **Persistent Storage**: Layouts saved in Home Assistant's storage system
+- **Round-Trip Support**: Import existing ESPHome configs back into the editor
+
+## Important Notes and Limitations
 
 - The generator currently:
-  - Uses a conservative widget set and a fixed display driver config tailored for the reTerminal.
-  - Emits comments and TODOs where manual adjustment may be needed.
-  - Does not yet dynamically bind every HA entity; some parts are placeholders / examples.
-- The PNG rendering path in `renderer.py` and old PNG-based docs are kept for reference,
-  but the YAML snippet workflow is the primary path.
+  - Uses a conservative widget set and a fixed display driver config tailored for the reTerminal E1001.
+  - Emits comments where manual adjustment may be needed.
+  - Focuses on sensor/binary_sensor/weather entity types.
+- The PNG rendering path in `renderer.py` is kept for reference but not required for normal operation.
 - You should always:
-  - Review the generated YAML.
-  - Keep it in version control.
-  - Verify it against ESPHome validation before flashing.
+  - Review the generated YAML before flashing.
+  - Keep your ESPHome configs in version control.
+  - Verify YAML against ESPHome validation before deploying to hardware.
 

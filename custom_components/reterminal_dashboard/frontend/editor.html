@@ -827,7 +827,8 @@
           loc.hostname === "hassio" ||
           loc.pathname.includes("/api/") ||
           loc.pathname.includes("/local/") ||
-          loc.pathname.includes("/hacsfiles/")
+          loc.pathname.includes("/hacsfiles/") ||
+          loc.pathname.includes("/reterminal-dashboard")
         ) {
           return `${loc.origin}/api/reterminal_dashboard`;
         }
@@ -841,6 +842,57 @@
 
     function hasHaBackend() {
       return !!HA_API_BASE;
+    }
+
+    // --- HA Entity States Cache for Live Preview ---
+    let entityStatesCache = {};
+    let entityStatesFetchInProgress = false;
+
+    async function fetchEntityStates() {
+      if (!hasHaBackend()) return;
+      if (entityStatesFetchInProgress) return;
+      
+      entityStatesFetchInProgress = true;
+      try {
+        const resp = await fetch(`${HA_API_BASE}/entities?domains=sensor,binary_sensor,weather`);
+        if (!resp.ok) {
+          console.warn("Failed to fetch entity states:", resp.status);
+          return;
+        }
+        const entities = await resp.json();
+        if (!Array.isArray(entities)) {
+          console.warn("Invalid entity response format");
+          return;
+        }
+        
+        // Build a map of entity_id -> state
+        const newCache = {};
+        for (const entity of entities) {
+          if (entity.entity_id && entity.state !== undefined) {
+            newCache[entity.entity_id] = entity.state;
+          }
+        }
+        entityStatesCache = newCache;
+        
+        // Re-render canvas to show updated states
+        if (typeof renderCanvas === 'function') {
+          renderCanvas();
+        }
+      } catch (err) {
+        console.warn("Error fetching entity states:", err);
+      } finally {
+        entityStatesFetchInProgress = false;
+      }
+    }
+
+    function getEntityState(entityId) {
+      return entityStatesCache[entityId] || null;
+    }
+
+    // Auto-refresh entity states every 30 seconds when HA backend is available
+    if (hasHaBackend()) {
+      fetchEntityStates(); // Initial fetch
+      setInterval(fetchEntityStates, 30000);
     }
 
     function setImportError(message) {
@@ -1637,7 +1689,17 @@
 
           let text = "";
           if (type === "sensor_text") {
-            text = widget.title || widget.entity_id || "sensor";
+            const entityId = widget.entity_id || "";
+            if (hasHaBackend() && entityId) {
+              const state = getEntityState(entityId);
+              if (state !== null) {
+                text = state;
+              } else {
+                text = widget.title || entityId || "sensor";
+              }
+            } else {
+              text = widget.title || entityId || "sensor";
+            }
           } else {
             text = props.text || widget.title || "Text";
           }
