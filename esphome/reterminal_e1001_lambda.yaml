@@ -48,12 +48,17 @@
 # esphome:
 #   name: reterminal
 #   friendly_name: reterminal
-#   on_boot:
-#     priority: 600
-#     then:
-#       - output.turn_on: bsp_battery_enable
-#       - delay: 200ms
-#       - component.update: epaper_display
+#
+# IMPORTANT: Add this on_boot section to initialize the display!
+esphome:
+  name: your-device-name
+  friendly_name: Your Device Name
+  on_boot:
+    priority: 600
+    then:
+      - output.turn_on: bsp_battery_enable
+      - delay: 200ms
+      - component.update: epaper_display
 #
 # esp32:
 #   board: esp32-s3-devkitc-1
