@@ -653,8 +653,11 @@ def _append_widget_render(dst: List[str], indent: str, widget: WidgetConfig) -> 
         if not text:
             return
         font = _resolve_font(props)
-        # Add marker comment for parser
-        content.append(f'{indent}// widget:text id:{widget.id} type:text x:{x} y:{y} w:{w} h:{h} text:"{text}"')
+        font_size = int(props.get("font_size", 12) or 12)
+        color_prop = (props.get("color") or "black").lower()
+        font_style = props.get("font_style") or "regular"
+        # Add marker comment for parser with all properties
+        content.append(f'{indent}// widget:text id:{widget.id} type:text x:{x} y:{y} w:{w} h:{h} text:"{text}" font_size:{font_size} color:{color_prop} font_style:{font_style}')
         content.append(f'{indent}it.print({x}, {y}, {font}, {fg}, "{text}");')
         _wrap_with_condition(dst, indent, widget, content)
         return
