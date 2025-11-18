@@ -180,6 +180,7 @@ class ReTerminalImportSnippetView(HomeAssistantView):
             device = yaml_to_layout(yaml_snippet)
         except ValueError as exc:
             code = str(exc)
+            _LOGGER.error("ValueError in yaml_to_layout: %s", exc, exc_info=True)
             if code == "invalid_yaml":
                 msg = "Invalid YAML syntax. Check for indentation errors."
             elif code == "unrecognized_display_structure":
@@ -203,13 +204,13 @@ class ReTerminalImportSnippetView(HomeAssistantView):
                 )
             _LOGGER.error("Unexpected error in yaml_to_layout: %s", exc)
             return self._json(
-                {"error": "import_failed"},
+                {"error": "import_failed", "message": str(exc)},
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             )
         except Exception as exc:  # noqa: BLE001
-            _LOGGER.error("Snippet import failed: %s", exc)
+            _LOGGER.error("Snippet import failed: %s", exc, exc_info=True)
             return self._json(
-                {"error": "import_failed"},
+                {"error": "import_failed", "message": str(exc)},
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             )
 

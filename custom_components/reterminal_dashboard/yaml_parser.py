@@ -56,29 +56,30 @@ yaml.SafeLoader.add_multi_constructor('!', _esphome_tag_constructor)
 @dataclass
 class ParsedWidget:
     """Intermediate structure extracted from lambda lines."""
-
+    # Required fields (no defaults)
     id: str
     type: str
     x: int
     y: int
     width: int
     height: int
+    # Optional fields (with defaults)
     title: str | None = None
     entity_id: str | None = None
     text: str | None = None
-    code: str | None = None  # For icon widgets
-    url: str | None = None  # For online_image widgets
-    path: str | None = None  # For image widgets
-    format: str | None = None  # For datetime widgets
-    invert: bool = False  # For image widgets
-    # Sensor text specific properties
-    label_font_size: int | None = None
-    value_font_size: int | None = None
-    value_format: str | None = None  # For sensor_text widgets: value_only, label_value, label_newline_value
+    code: str | None = None
+    url: str | None = None
+    path: str | None = None
+    format: str | None = None
+    invert: bool = False
     # Text widget properties
     font_family: str | None = None
     font_size: int | None = None
     font_style: str | None = None
+    # Sensor text properties
+    label_font_size: int | None = None
+    value_font_size: int | None = None
+    value_format: str | None = None
     # Common properties
     color: str | None = None
     # Shape properties
