@@ -4281,19 +4281,27 @@
 
     saveLayoutBtn.onclick = async () => {
       const body = getPagesPayload();
+      console.log("Saving layout:", body);
+      console.log("Pages:", body.pages?.length, "widgets:", body.pages?.reduce((sum, p) => sum + (p.widgets?.length || 0), 0));
       try {
         const resp = await fetch("/api/reterminal_dashboard/layout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body)
         });
+        console.log("Save response status:", resp.status, resp.ok);
         if (!resp.ok) {
+          const errText = await resp.text();
+          console.error("Save failed:", errText);
           sidebarStatus.textContent = "Failed to save layout via API.";
           return;
         }
+        const result = await resp.json();
+        console.log("Save successful:", result);
         sidebarStatus.textContent = "Layout saved.";
         scheduleSnippetUpdate();
-      } catch {
+      } catch (err) {
+        console.error("Save error:", err);
         sidebarStatus.textContent = "Failed to save layout (network error).";
       }
     };
@@ -4349,16 +4357,22 @@
     }
 
     async function loadLayoutFromBackend() {
+      console.log("Loading layout from backend...");
       try {
         const resp = await fetch("/api/reterminal_dashboard/layout");
+        console.log("Load response status:", resp.status, resp.ok);
         if (!resp.ok) {
+          console.warn("Load failed, initializing default layout");
           initDefaultLayout();
           return;
         }
         const data = await resp.json();
+        console.log("Loaded layout:", data);
+        console.log("Pages:", data.pages?.length, "widgets:", data.pages?.reduce((sum, p) => sum + (p.widgets?.length || 0), 0));
         pages = data.pages || [];
         currentPageIndex = data.current_page || 0;
         if (!pages.length) {
+          console.warn("No pages in loaded layout, initializing default");
           initDefaultLayout();
           return;
         }
@@ -4366,7 +4380,9 @@
         renderPagesSidebar();
         renderCanvas();
         renderPropertiesPanel();
-      } catch {
+        console.log("Layout loaded successfully");
+      } catch (err) {
+        console.error("Load error:", err);
         initDefaultLayout();
       }
     }
