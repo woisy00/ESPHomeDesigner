@@ -4565,7 +4565,7 @@ function generateSnippetLocally() {
                         const safeId = entityId.replace(/\./g, "_").replace(/-/g, "_");
                         // Determine if it's a numeric sensor or text sensor
                         // Default to numeric for 'sensor.' unless is_text_sensor is explicitly true
-                        const isNumeric = entityId.startsWith("sensor.") && !isTextSensor;
+                        const isNumeric = entityId.startsWith("sensor.") && !p.is_text_sensor;
 
                         let valueExpr = `id(${safeId}).state`;
                         let fmtSpec = "%.1f";

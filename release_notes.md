@@ -1,5 +1,9 @@
 # Release Notes
 
+## v0.4.6.1
+- **Critical Bug Fix**: Fixed JavaScript error `ReferenceError: isTextSensor is not defined` in snippet generator that prevented YAML generation and caused compilation errors.
+
+
 ## v0.4.6
 - **Number Sensor Fix**: Fixed a bug where number sensors were interpreted as text sensors, causing them to show gibberish or fail to compile.
 - **Graph Improvements**: X and Y information are now automatically added if the user adds min/max information or time information in the widget settings.
