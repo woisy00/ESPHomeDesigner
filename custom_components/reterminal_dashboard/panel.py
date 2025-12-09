@@ -179,15 +179,20 @@ class ReTerminalDashboardStaticView(HomeAssistantView):
 
         try:
             # Determine content type
-            content_type, _ = mimetypes.guess_type(str(file_path))
+            # Determine content type manually first for critical types to avoid system registry issues
+            content_type = None
+            if path.endswith(".js"):
+                content_type = "application/javascript"
+            elif path.endswith(".css"):
+                content_type = "text/css"
+            elif path.endswith(".json"):
+                 content_type = "application/json"
+
             if not content_type:
-                if path.endswith(".css"):
-                    content_type = "text/css"
-                elif path.endswith(".js"):
-                    content_type = "application/javascript"
-                elif path.endswith(".json"):
-                    content_type = "application/json"
-                elif path.endswith(".ttf"):
+                content_type, _ = mimetypes.guess_type(str(file_path))
+            
+            if not content_type:
+                if path.endswith(".ttf"):
                     content_type = "font/ttf"
                 elif path.endswith(".woff"):
                     content_type = "font/woff"

@@ -228,17 +228,20 @@ function parseSnippetYamlOffline(yamlText) {
             const marker = parseWidgetMarker(trimmed);
             if (marker && marker.props.id) {
                 const p = marker.props;
-                // Use explicit type from props, or fallback to the type defined in the widget marker header
-                p.type = p.type || marker.widgetType;
+                // Use widgetType from marker as primary source of truth to avoid property name collisions (e.g. chart 'type')
+                // Only fall back to p.type if marker.widgetType is generic or missing (rare)
+                const widgetType = marker.widgetType || p.type;
 
-                if (!p.type) {
+                // Keep p.type as the property value (e.g. "LINE") if it exists, don't overwrite it with widgetType
+
+                if (!widgetType) {
                     console.warn("[parseSnippetYamlOffline] Widget marker found but no type determined:", trimmed);
                     continue;
                 }
 
                 const widget = {
                     id: p.id,
-                    type: p.type,
+                    type: widgetType,
                     x: parseInt(p.x || 0, 10),
                     y: parseInt(p.y || 0, 10),
                     width: parseInt(p.w || 100, 10),
@@ -253,14 +256,14 @@ function parseSnippetYamlOffline(yamlText) {
                     props: {}
                 };
 
-                if (p.type === "icon") {
+                if (widgetType === "icon") {
                     widget.props = {
                         code: p.code || "F0595",
                         size: parseInt(p.size || 48, 10),
                         color: p.color || "black",
                         fit_icon_to_frame: (p.fit === "true" || p.fit === "1")
                     };
-                } else if (p.type === "text" || p.type === "label") {
+                } else if (widgetType === "text" || widgetType === "label") {
                     widget.props = {
                         text: p.text || "",
                         font_size: parseInt(p.font_size || p.size || 20, 10),
@@ -271,7 +274,7 @@ function parseSnippetYamlOffline(yamlText) {
                         color: p.color || "black",
                         text_align: p.align || p.text_align || "TOP_LEFT"
                     };
-                } else if (p.type === "sensor_text") {
+                } else if (widgetType === "sensor_text") {
                     widget.props = {
                         label_font_size: parseInt(p.label_font || p.label_font_size || 14, 10),
                         value_font_size: parseInt(p.value_font || p.value_font_size || 20, 10),
@@ -291,7 +294,7 @@ function parseSnippetYamlOffline(yamlText) {
                         separator: p.separator || " ~ "
                     };
                     widget.entity_id_2 = p.entity_2 || "";
-                } else if (p.type === "datetime") {
+                } else if (widgetType === "datetime") {
                     widget.props = {
                         format: p.format || "time_date",
                         time_font_size: parseInt(p.time_font || 28, 10),
@@ -300,7 +303,7 @@ function parseSnippetYamlOffline(yamlText) {
                         italic: (p.italic === "true" || p.italic === true || p.font_style === "italic"),
                         font_family: p.font_family || "Roboto"
                     };
-                } else if (p.type === "progress_bar") {
+                } else if (widgetType === "progress_bar") {
                     widget.props = {
                         show_label: (p.show_label !== "false"),
                         show_percentage: (p.show_pct !== "false"),
@@ -309,26 +312,26 @@ function parseSnippetYamlOffline(yamlText) {
                         color: p.color || "black",
                         is_local_sensor: (p.local === "true")
                     };
-                } else if (p.type === "battery_icon") {
+                } else if (widgetType === "battery_icon") {
                     widget.props = {
                         size: parseInt(p.size || 32, 10),
                         font_size: parseInt(p.font_size || 12, 10),
                         color: p.color || "black",
                         is_local_sensor: (p.local === "true")
                     };
-                } else if (p.type === "weather_icon") {
+                } else if (widgetType === "weather_icon") {
                     widget.props = {
                         size: parseInt(p.size || 48, 10),
                         color: p.color || "black"
                     };
-                } else if (p.type === "qr_code") {
+                } else if (widgetType === "qr_code") {
                     widget.props = {
                         value: p.value || "https://esphome.io",
                         scale: parseInt(p.scale || 2, 10),
                         ecc: p.ecc || "LOW",
                         color: p.color || "black"
                     };
-                } else if (p.type === "image") {
+                } else if (widgetType === "image") {
                     widget.props = {
                         path: (p.path || "").replace(/^"|"$/g, ''),
                         invert: (p.invert === "true" || p.invert === "1"),
@@ -337,14 +340,14 @@ function parseSnippetYamlOffline(yamlText) {
                         image_type: p.img_type || "BINARY",
                         render_mode: p.render_mode || "Auto"
                     };
-                } else if (p.type === "online_image") {
+                } else if (widgetType === "online_image") {
                     widget.props = {
                         url: p.url || "",
                         invert: (p.invert === "true" || p.invert === "1"),
                         interval_s: parseInt(p.interval || 300, 10),
                         render_mode: p.render_mode || "Auto"
                     };
-                } else if (p.type === "puppet") {
+                } else if (widgetType === "puppet") {
                     widget.props = {
                         image_url: p.url || "",
                         invert: (p.invert === "true" || p.invert === "1"),
@@ -352,14 +355,14 @@ function parseSnippetYamlOffline(yamlText) {
                         transparency: p.transparency || "opaque",
                         render_mode: p.render_mode || "Auto"
                     };
-                } else if (p.type === "shape_rect") {
+                } else if (widgetType === "shape_rect") {
                     widget.props = {
                         fill: (p.fill === "true" || p.fill === "1"),
                         border_width: parseInt(p.border || 1, 10),
                         color: p.color || "black",
                         opacity: parseInt(p.opacity || 100, 10)
                     };
-                } else if (p.type === "rounded_rect") {
+                } else if (widgetType === "rounded_rect") {
                     widget.props = {
                         fill: (p.fill === "true" || p.fill === "1"),
                         // Robustly parse show_border, defaulting to true if not explicitly false
@@ -369,20 +372,20 @@ function parseSnippetYamlOffline(yamlText) {
                         color: p.color || "black",
                         opacity: parseInt(p.opacity || 100, 10)
                     };
-                } else if (p.type === "shape_circle") {
+                } else if (widgetType === "shape_circle") {
                     widget.props = {
                         fill: (p.fill === "true" || p.fill === "1"),
                         border_width: parseInt(p.border || 1, 10),
                         color: p.color || "black",
                         opacity: parseInt(p.opacity || 100, 10)
                     };
-                } else if (p.type === "line") {
+                } else if (widgetType === "line") {
                     widget.props = {
                         stroke_width: parseInt(p.stroke || 3, 10),
                         color: p.color || "black",
                         orientation: p.orientation || "horizontal"
                     };
-                } else if (p.type === "graph") {
+                } else if (widgetType === "graph") {
                     widget.entity_id = p.entity || "";
                     widget.props = {
                         duration: p.duration || "1h",
@@ -400,7 +403,7 @@ function parseSnippetYamlOffline(yamlText) {
                         max_range: p.max_range || "",
                         is_local_sensor: (p.local === "true")
                     };
-                } else if (p.type === "quote_rss") {
+                } else if (widgetType === "quote_rss") {
                     widget.props = {
                         feed_url: p.feed_url || "https://www.brainyquote.com/link/quotebr.rss",
                         show_author: (p.show_author !== "false"),
@@ -415,7 +418,7 @@ function parseSnippetYamlOffline(yamlText) {
                         word_wrap: (p.word_wrap !== "false" && p.wrap !== "false"),
                         italic_quote: (p.italic_quote !== "false")
                     };
-                } else if (p.type === "lvgl_button") {
+                } else if (widgetType === "lvgl_button") {
                     widget.props = {
                         text: p.text || "BTN",
                         bg_color: p.bg_color || "white",
@@ -424,7 +427,7 @@ function parseSnippetYamlOffline(yamlText) {
                         radius: parseInt(p.radius || 5, 10)
                     };
                     if (p.title) widget.title = p.title;
-                } else if (p.type === "lvgl_arc") {
+                } else if (widgetType === "lvgl_arc") {
                     widget.props = {
                         min: parseInt(p.min || 0, 10),
                         max: parseInt(p.max || 100, 10),
@@ -441,7 +444,53 @@ function parseSnippetYamlOffline(yamlText) {
                         widget.title = p.title;
                         widget.props.title = p.title;
                     }
-                } else if (p.type.startsWith("lvgl_")) {
+                } else if (widgetType === "lvgl_chart") {
+                    widget.props = {
+                        title: p.title || "Graph",
+                        type: p.type || "LINE",
+                        color: p.color || "black",
+                        bg_color: p.bg_color || "white"
+                    };
+                    if (p.title) widget.title = p.title;
+
+                } else if (widgetType === "lvgl_img") {
+                    widget.props = {
+                        src: p.src || "symbol_image",
+                        rotation: parseInt(p.rotation || 0, 10),
+                        scale: parseInt(p.scale || 256, 10),
+                        pivot_x: parseInt(p.pivot_x || 0, 10),
+                        pivot_y: parseInt(p.pivot_y || 0, 10),
+                        color: p.color || "black"
+                    };
+
+                } else if (widgetType === "lvgl_qrcode") {
+                    widget.props = {
+                        text: p.text || "https://esphome.io",
+                        scale: parseInt(p.scale || 2, 10),
+                        color: p.color || "black",
+                        bg_color: p.bg_color || "white"
+                    };
+
+                } else if (widgetType === "lvgl_bar") {
+                    widget.props = {
+                        min: parseInt(p.min || 0, 10),
+                        max: parseInt(p.max || 100, 10),
+                        value: parseInt(p.value || 0, 10),
+                        color: p.color || "blue",
+                        bg_color: p.bg_color || "gray"
+                    };
+
+                } else if (widgetType === "lvgl_slider") {
+                    widget.props = {
+                        min: parseInt(p.min || 0, 10),
+                        max: parseInt(p.max || 100, 10),
+                        value: parseInt(p.value || 0, 10),
+                        border_width: parseInt(p.border_width || 2, 10),
+                        color: p.color || "blue",
+                        bg_color: p.bg_color || "gray"
+                    };
+
+                } else if (widgetType.startsWith("lvgl_")) {
                     // Generic fallback for other LVGL widgets
                     // Copy all props from p to widget.props, converting "true"/"false" strings
                     widget.props = {};

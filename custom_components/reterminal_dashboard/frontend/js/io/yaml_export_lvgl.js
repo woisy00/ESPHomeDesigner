@@ -248,6 +248,113 @@ function transpileToLVGL(w) {
                 }
             };
 
+        case "lvgl_chart":
+        case "graph":
+            return {
+                chart: {
+                    ...common,
+                    type: p.type || "LINE",
+                    style: {
+                        bg_color: convertColor(p.bg_color || "white"),
+                        border_color: convertColor(p.color),
+                        border_width: 1
+                    },
+                    items: [
+                        { // Dataset
+                            line_color: convertColor(p.color),
+                            points: [0, 20, 50, 30, 80, 60, 40, 90, 50, 70] // Mock data
+                        }
+                    ],
+                    widgets: [
+                        {
+                            label: {
+                                align: "TOP_MID",
+                                text: `"${p.title || 'Graph'}"`,
+                                text_color: convertColor(p.color)
+                            }
+                        }
+                    ]
+                }
+            };
+
+        case "lvgl_img":
+        case "image":
+        case "online_image":
+            // ... (keep logic, but verify src) ...
+            let src = (p.src || p.path || p.url || "symbol_image");
+            // Standard ESPHome LVGL expects an ID of an image: component or a symbol
+            // We can't easily auto-generate the image: component from here without global context,
+            // so we'll warn or default if it looks like a URL/path that isn't registered.
+            // For now, allow it to pass through, assuming user might have defined it.
+            return {
+                img: {
+                    ...common,
+                    src: src,
+                    angle: (p.rotation || 0),
+                    pivot_x: (p.pivot_x || 0),
+                    pivot_y: (p.pivot_y || 0),
+                    image_recolor: convertColor(p.color),
+                    image_recolor_opa: "COVER"
+                }
+            };
+
+        case "lvgl_qrcode":
+        case "qr_code":
+            return {
+                qrcode: {
+                    ...common,
+                    text: `"${p.text || p.value || 'https://esphome.io'}"`,
+                    size: Math.min(w_w, w_h),
+                    dark_color: convertColor(p.color),
+                    light_color: convertColor(p.bg_color || "white")
+                }
+            };
+
+        case "lvgl_bar":
+        case "progress_bar":
+            let barValue = p.value || 0;
+            if (w.entity_id) {
+                const safeId = w.entity_id.replace(/^sensor\./, "").replace(/[^a-zA-Z0-9_]/g, "_");
+                barValue = `!lambda "return id(${safeId}).state;"`;
+            }
+            return {
+                bar: {
+                    ...common,
+                    min_value: p.min || 0,
+                    max_value: p.max || 100,
+                    value: barValue,
+                    bg_color: convertColor(p.bg_color || "gray"),
+                    indicator: {
+                        bg_color: convertColor(p.color), // Bar color
+                    }
+                }
+            };
+
+        case "lvgl_slider":
+            let sliderValue = p.value || 30;
+            if (w.entity_id) {
+                const safeId = w.entity_id.replace(/^number\./, "").replace(/[^a-zA-Z0-9_]/g, "_"); // Assist default to number domain
+                sliderValue = `!lambda "return id(${safeId}).state;"`;
+            }
+            return {
+                slider: {
+                    ...common,
+                    min_value: p.min || 0,
+                    max_value: p.max || 100,
+                    value: sliderValue,
+                    border_width: p.border_width,
+                    bg_color: convertColor(p.bg_color || "gray"), // Track
+                    indicator: {
+                        bg_color: convertColor(p.color) // Active track
+                    },
+                    knob: {
+                        bg_color: convertColor(p.color),
+                        border_width: 2,
+                        border_color: "0xFFFFFF"
+                    }
+                }
+            };
+
         // ... (Line, Rect, etc. can stay as is, they are simple) ... 
         case "line":
             return {

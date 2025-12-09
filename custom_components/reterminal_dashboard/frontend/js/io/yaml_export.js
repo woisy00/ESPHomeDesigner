@@ -2048,7 +2048,7 @@ function generateSnippetLocally() {
                             const pctFontRef = `font_roboto_400_${fontSize}`;
                             usedFontIds.add(pctFontRef);
 
-                            const sensorId = entityId ? entityId.replace(/^sensor\./, "").replace(/\./g, "_").replace(/-/g, "_") : "battery_level";
+                            const sensorId = (p.is_local_sensor || !entityId) ? "battery_level" : entityId.replace(/^sensor\./, "").replace(/\./g, "_").replace(/-/g, "_");
 
                             lines.push(`        // widget:battery_icon id:${w.id} type:battery_icon x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId || "battery_level"} size:${size} font_size:${fontSize} color:${colorProp} local:${!!p.is_local_sensor} ${getCondProps(w)}`);
                             lines.push(`        {`);

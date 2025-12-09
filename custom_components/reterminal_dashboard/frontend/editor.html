@@ -267,6 +267,46 @@
               </svg>
               <span class="label">Arc</span>
             </div>
+            <div class="item" data-widget-type="lvgl_slider">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <circle cx="12" cy="12" r="3" fill="currentColor" />
+              </svg>
+              <span class="label">Slider</span>
+            </div>
+            <div class="item" data-widget-type="lvgl_bar">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="2" y="9" width="20" height="6" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                <rect x="3" y="10" width="12" height="4" rx="1" fill="currentColor" />
+              </svg>
+              <span class="label">Bar</span>
+            </div>
+            <div class="item" data-widget-type="lvgl_chart">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M3 3v18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M7 14l4-4 4 4 5-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+              <span class="label">Chart</span>
+            </div>
+            <div class="item" data-widget-type="lvgl_img">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                <path d="M21 15l-5-5L11 15l-3-3-5 5" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span class="label">Image</span>
+            </div>
+            <div class="item" data-widget-type="lvgl_qrcode">
+              <svg class="widget-icon" viewBox="0 0 24 24" width="18" height="18">
+                <rect x="3" y="3" width="7" height="7" fill="currentColor" />
+                <rect x="14" y="3" width="7" height="7" fill="currentColor" />
+                <rect x="3" y="14" width="7" height="7" fill="currentColor" />
+                <rect x="14" y="14" width="3" height="3" fill="currentColor" />
+              </svg>
+              <span class="label">QR Code</span>
+            </div>
           </div>
         </div>
 
@@ -697,6 +737,11 @@
   <script src="features/weather_forecast/render.js"></script>
   <script src="features/lvgl_button/render.js"></script>
   <script src="features/lvgl_arc/render.js"></script>
+  <script src="features/lvgl_chart/render.js"></script>
+  <script src="features/lvgl_img/render.js"></script>
+  <script src="features/lvgl_qrcode/render.js"></script>
+  <script src="features/lvgl_bar/render.js"></script>
+  <script src="features/lvgl_slider/render.js"></script>
 
   <!-- Main app (depends on everything above) -->
   <script src="js/main.js"></script>

@@ -701,6 +701,54 @@ class PropertiesPanel {
             this.addLabeledInput("Thickness", "number", props.thickness || 10, (v) => updateProp("thickness", parseInt(v, 10)));
             this.addSelect("Color", props.color || "blue", colors, (v) => updateProp("color", v));
         }
+        else if (type === "lvgl_chart") {
+            this.addLabeledInput("Title", "text", props.title || "", (v) => updateProp("title", v));
+            this.addSelect("Type", props.type || "LINE", ["LINE", "SCATTER", "BAR"], (v) => updateProp("type", v));
+            this.addLabeledInput("Min Value", "number", props.min || 0, (v) => updateProp("min", parseInt(v, 10)));
+            this.addLabeledInput("Max Value", "number", props.max || 100, (v) => updateProp("max", parseInt(v, 10)));
+            this.addSelect("Color", props.color || "black", colors, (v) => updateProp("color", v));
+        }
+        else if (type === "lvgl_img") {
+            this.addLabeledInput("Source (Image/Symbol)", "text", props.src || "", (v) => updateProp("src", v));
+            this.addHint("e.g. symbol_ok, symbol_home, or /image.png");
+
+            this.addLabeledInput("Rotation (0.1 deg)", "number", props.rotation || 0, (v) => updateProp("rotation", parseInt(v, 10)));
+            this.addLabeledInput("Scale (256 = 1x)", "number", props.scale || 256, (v) => updateProp("scale", parseInt(v, 10)));
+            this.addSelect("Color (Tint)", props.color || "black", colors, (v) => updateProp("color", v));
+        }
+        else if (type === "lvgl_qrcode") {
+            this.addLabeledInput("Content / URL", "text", props.text || "", (v) => updateProp("text", v));
+            this.addLabeledInput("Size (px)", "number", props.size || 100, (v) => updateProp("size", parseInt(v, 10)));
+            this.addSelect("Color", props.color || "black", colors, (v) => updateProp("color", v));
+            this.addSelect("Background Color", props.bg_color || "white", colors, (v) => updateProp("bg_color", v));
+        }
+        else if (type === "lvgl_bar") {
+            this.addLabeledInputWithPicker("Entity ID", "text", widget.entity_id || "", (v) => {
+                AppState.updateWidget(widget.id, { entity_id: v });
+            }, widget);
+
+            this.addLabeledInput("Min Value", "number", props.min || 0, (v) => updateProp("min", parseInt(v, 10)));
+            this.addLabeledInput("Max Value", "number", props.max || 100, (v) => updateProp("max", parseInt(v, 10)));
+            this.addLabeledInput("Preview Value", "number", props.value || 50, (v) => updateProp("value", parseInt(v, 10)));
+
+            this.addSelect("Bar Color", props.color || "black", colors, (v) => updateProp("color", v));
+            this.addSelect("Background Color", props.bg_color || "gray", colors, (v) => updateProp("bg_color", v));
+            this.addCheckbox("Range Mode", props.range_mode || false, (v) => updateProp("range_mode", v));
+        }
+        else if (type === "lvgl_slider") {
+            this.addLabeledInputWithPicker("Entity ID", "text", widget.entity_id || "", (v) => {
+                AppState.updateWidget(widget.id, { entity_id: v });
+            }, widget);
+            this.addHint("Controls this entity number/level");
+
+            this.addLabeledInput("Min Value", "number", props.min || 0, (v) => updateProp("min", parseInt(v, 10)));
+            this.addLabeledInput("Max Value", "number", props.max || 100, (v) => updateProp("max", parseInt(v, 10)));
+            this.addLabeledInput("Preview Value", "number", props.value || 30, (v) => updateProp("value", parseInt(v, 10)));
+
+            this.addSelect("Knob/Bar Color", props.color || "black", colors, (v) => updateProp("color", v));
+            this.addSelect("Track Color", props.bg_color || "gray", colors, (v) => updateProp("bg_color", v));
+            this.addLabeledInput("Border Width", "number", props.border_width || 2, (v) => updateProp("border_width", parseInt(v, 10)));
+        }
     }
 
     // --- Helpers ---

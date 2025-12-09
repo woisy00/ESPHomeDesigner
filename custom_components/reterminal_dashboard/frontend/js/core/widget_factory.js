@@ -257,6 +257,68 @@ class WidgetFactory {
                     thickness: 10
                 };
                 break;
+
+            case "lvgl_chart":
+                widget.width = 200;
+                widget.height = 150;
+                widget.props = {
+                    min: 0,
+                    max: 100,
+                    color: "black",
+                    title: "Chart",
+                    type: "LINE" // LINE or SCATTER
+                };
+                break;
+
+            case "lvgl_img":
+                widget.width = 100;
+                widget.height = 100;
+                widget.props = {
+                    src: "symbol_ok", // Default to a symbol temporarily
+                    pivot_x: 0,
+                    pivot_y: 0,
+                    rotation: 0,
+                    scale: 256,
+                    color: "black"
+                };
+                break;
+
+            case "lvgl_qrcode":
+                widget.width = 100;
+                widget.height = 100;
+                widget.props = {
+                    text: "https://esphome.io",
+                    size: 100,
+                    color: "black",
+                    bg_color: "white"
+                };
+                break;
+
+            case "lvgl_bar":
+                widget.width = 200;
+                widget.height = 20;
+                widget.props = {
+                    min: 0,
+                    max: 100,
+                    value: 50,
+                    color: "black", // Main color
+                    bg_color: "gray", // Background color
+                    range_mode: false
+                };
+                break;
+
+            case "lvgl_slider":
+                widget.width = 200;
+                widget.height = 20;
+                widget.props = {
+                    min: 0,
+                    max: 100,
+                    value: 30,
+                    color: "black",
+                    bg_color: "gray",
+                    border_width: 2
+                };
+                break;
         }
 
         return widget;
