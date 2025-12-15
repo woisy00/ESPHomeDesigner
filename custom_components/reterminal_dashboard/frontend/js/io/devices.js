@@ -10,6 +10,7 @@ window.DEVICE_PROFILES = {
         name: "reTerminal E1001 (Monochrome)",
         displayModel: "7.50inv2p",
         displayPlatform: "waveshare_epaper",
+        psram_mode: "octal",
         pins: {
             display: { cs: "GPIO10", dc: "GPIO11", reset: { number: "GPIO12", inverted: false }, busy: { number: "GPIO13", inverted: true } },
             i2c: { sda: "GPIO19", scl: "GPIO20" },
@@ -35,6 +36,7 @@ window.DEVICE_PROFILES = {
         name: "reTerminal E1002 (6-Color)",
         displayModel: "Seeed-reTerminal-E1002",
         displayPlatform: "epaper_spi",
+        psram_mode: "octal",
         pins: {
             display: { cs: null, dc: null, reset: null, busy: null },
             i2c: { sda: "GPIO19", scl: "GPIO20" },
@@ -81,8 +83,6 @@ window.DEVICE_PROFILES = {
             sht4x: false
         }
     },
-<<<<<<< Updated upstream
-=======
     m5stack_coreink: {
         name: "M5Stack CoreInk (200x200)",
         displayModel: "1.54in-m5coreink-m09",
@@ -162,7 +162,6 @@ window.DEVICE_PROFILES = {
             "  - source: github://Passific/m5paper_esphome"
         ]
     },
->>>>>>> Stashed changes
     esp32_s3_photopainter: {
         name: "Waveshare PhotoPainter (6-Color)",
         displayModel: "7.30in-f",

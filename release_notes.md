@@ -2,6 +2,18 @@
 
 
 
+
+## v0.7.2 - Hotfix
+
+**Release Date:** December 15, 2025
+
+### 🐛 Bug Fixes
+- **ESP32-S3 PSRAM Mode**: Fixed compilation Error "ESP32S3 requires PSRAM mode selection" by explicitly setting `psram_mode: octal` for reTerminal E1001/E1002.
+- **Graph Sensor ID Mismatch**: Fixed "Couldn't find ID" error for graph widgets by ensuring the graph's internal sensor reference matches the correctly sanitized sensor ID (e.g. `sensor_my_entity`).
+- **OOM Compilation Support**: Added a helpful tip in the generated YAML setup instructions suggesting `compile_process_limit: 1` if users encounter Out-of-Memory (OOM) errors during compilation on ESP32-S3.
+
+---
+
 ## v0.7.1 - Hotfix
 
 **Release Date:** December 15, 2025
