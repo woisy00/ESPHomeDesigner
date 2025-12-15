@@ -34,6 +34,17 @@ It enables you to build premium, touch-interactive dashboards for various ESP32-
 
 **Use case:** Display a weather page when you wake up, switch to a sensor dashboard during the day, show a specific alert page when the doorbell rings - all automated through Home Assistant.
 
+> [!WARNING]
+> ### ⚠️ Important: Rolling back to v0.6.3 (Stable)
+> 
+> **I've decided to revert ESPHome on this repo from 0.7.2 back to 0.6.3.**
+> 
+> To put it simply: the 0.7 branch was totally "undercooked" and had to go back to the kitchen to bake a little longer. I cannot have an unstable version on the main branch, so for now, **v0.6.3 is the default again**.
+> 
+> The v0.7.x code (and the **LVGL support** that came with it) now lives in the `testing` branch.
+> 
+> *Sorry for the inconvenience/version whiplash!*
+
 ## Quick Start
 
 ### 1. Install via HACS (Recommended)
