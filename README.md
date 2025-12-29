@@ -228,7 +228,7 @@ The workflow is safe and deterministic - same layout always produces the same YA
 
 **Currently Supported:**
 - **Seeed Studio**: [reTerminal E1001](https://www.seeedstudio.com/reTerminal-E1001-p-6534.html?sensecap_affiliate=U5gNTEF&referring_service=link) (BW), [reTerminal E1002](https://www.seeedstudio.com/reTerminal-E1002-p-6533.html?sensecap_affiliate=U5gNTEF&referring_service=link) (Color), [TRMNL 7.5'' OG DIY Kit](https://www.seeedstudio.com/TRMNL-7-5-Inch-OG-DIY-Kit-p-6481.html?sensecap_affiliate=U5gNTEF&referring_service=link) (S3)
-- **Waveshare**: [PhotoPainter](https://www.waveshare.com/esp32-s3-photopainter.htm) (7-Color)
+- **Waveshare**: [PhotoPainter](https://www.waveshare.com/esp32-s3-photopainter.htm?&aff_id=136175) (7-Color)
 - **M5Stack**: [M5Paper](https://shop.m5stack.com/products/m5paper-esp32-development-kit-v1-1-960x540-4-7-eink-display-235-ppi?ref=qcwynykf&srsltid=AfmBOopfcra6VDlyNoA8jSlBq8CLjnDIqCT8peRIUqGMq_4DVDSAMGCV&variant=39966887903404) (Touch), [M5Stack M5Core Ink](https://shop.m5stack.com/products/m5stack-esp32-core-ink-development-kit1-54-elnk-display?ref=qcwynykf)
 - **TRMNL**: Original [ESP32-C3 e-paper device](https://shop.usetrmnl.com/collections/devices/products/trmnl)
 
