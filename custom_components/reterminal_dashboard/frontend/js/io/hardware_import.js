@@ -12,7 +12,8 @@ async function fetchDynamicHardwareProfiles() {
         const url = `${HA_API_BASE}/hardware/templates`;
         console.log("[HardwareDiscovery] Fetching from:", url);
         const response = await fetch(url, {
-            headers: getHaHeaders()
+            headers: getHaHeaders(),
+            cache: "no-store"
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();

@@ -75,8 +75,11 @@ function generateCustomHardwareYaml(config) {
     // For many drivers, we need model or specific init
     if (displayDriver === "st7789v") {
         lines.push("    model: Custom");
+        lines.push("    id: my_display");
         lines.push(`    width: ${resWidth}`);
         lines.push(`    height: ${resHeight}`);
+        lines.push("    offset_height: 0");
+        lines.push("    offset_width: 0");
     }
 
     lines.push("    lambda: |-");

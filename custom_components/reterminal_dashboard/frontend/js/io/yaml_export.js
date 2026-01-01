@@ -25,7 +25,8 @@ async function fetchHardwarePackage(url) {
     }
 
     try {
-        const response = await fetch(url);
+        // FIX: Prevent browser caching of hardware profiles (User Report: Custom recipes not updating)
+        const response = await fetch(url, { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return await response.text();
     } catch (e) {
@@ -1619,6 +1620,15 @@ async function generateSnippetLocally() {
             const getColorConst = (c) => {
                 if (!c) return "COLOR_BLACK";
                 const cl = c.toLowerCase();
+
+                // Handle Hex Colors (#RRGGBB)
+                if (cl.startsWith("#") && cl.length === 7) {
+                    const r = parseInt(cl.substring(1, 3), 16);
+                    const g = parseInt(cl.substring(3, 5), 16);
+                    const b = parseInt(cl.substring(5, 7), 16);
+                    return `Color(${r}, ${g}, ${b})`;
+                }
+
                 if (cl === "white") return "COLOR_WHITE";
                 if (cl === "black") return "COLOR_BLACK";
                 if (cl === "gray" || cl === "grey") return "COLOR_BLACK"; // Dithered later

@@ -1,6 +1,16 @@
 # Release Notes
 
 
+## v0.8.6.1 - Hotfix: Custom Recipe Caching
+
+**Release Date:** January 1, 2026
+
+### 🐛 Bug Fixes
+- **Custom Hardware Recipe Updates**: Fixed a critical issue where updating a custom hardware recipe (YAML file) and re-importing it would not reflect changes in the generated output. The system now bypasses browser caching when fetching hardware packages and templates, ensuring edits are immediately applied.
+- **Custom Hardware Profile Generation**: Fixed missing `id: my_display`, `offset_height: 0`, and `offset_width: 0` properties in the generated YAML for ST7789V displays.
+- **YAML Color Export**: Fixed an issue where custom colors selected via the RGB picker always exported as `COLOR_BLACK`. The exporter now correctly parses hex color codes and generates the appropriate `Color(r, g, b)` constructors in the C++ lambda.
+
+
 ## v0.8.6 - Experimental: Custom Hardware Profiles
 
 **Release Date:** January 1, 2026
