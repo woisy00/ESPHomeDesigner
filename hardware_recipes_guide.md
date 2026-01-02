@@ -21,6 +21,9 @@ display:
       # __LAMBDA_PLACEHOLDER__
 ```
 
+> [!NOTE]
+> **Philosophy Alignment:** The Designer strictly separates hardware definition from application logic. Any system-level configuration (like `wifi`, `api`, `captive_portal`) in your recipe will be automatically commented out during export to prevent conflicts.
+
 ---
 
 ## 📝 Recipe Structure
@@ -58,12 +61,13 @@ The Designer looks for specific metadata in the form of comments at the top of y
 
 ---
 
-## 👩‍🍳 Creating Your Own Recipe
+## 👩‍🍳 Creating Your Own Recipe (The Easy Way)
 
 1. **Start with a working ESPHome YAML**: Take an existing, working configuration for your device.
 2. **Add Metadata**: Add the `# TARGET DEVICE`, `# Resolution`, and `# Shape` comments at the top.
-3. **Clean Up**: Remove any existing UI drawing logic (like `it.print`, `it.fill_screen`, etc.) from your `display` lambda.
-4. **Insert Placeholder**: Add `# __LAMBDA_PLACEHOLDER__` inside the lambda block.
+3. **Smart Sanitization (Optional)**: You can leave your system configuration (`esphome:`, `wifi:`, `api:`, etc.) in the file for testing. The Designer is "philosophy-aware" and will automatically comment these out when generating the final code.
+4. **Clean Up (Recommended)**: Remove any existing UI drawing logic (like `it.print`, `it.fill_screen`, etc.) from your `display` lambda.
+5. **Insert Placeholder**: Add `# __LAMBDA_PLACEHOLDER__` inside the lambda block.
 5. **Save**: Save the file with a `.yaml` extension (e.g., `my_awesome_device.yaml`).
 
 > [!IMPORTANT]
