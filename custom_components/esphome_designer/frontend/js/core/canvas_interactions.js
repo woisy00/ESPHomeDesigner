@@ -525,6 +525,12 @@ export function setupInteractions(canvasInstance) {
     });
 
     canvasInstance.canvas.addEventListener("contextmenu", (ev) => {
+        // Prevent context menu during active drag/resize interactions
+        if (canvasInstance.touchState || canvasInstance.dragState || canvasInstance.lassoState) {
+            ev.preventDefault();
+            return;
+        }
+
         ev.preventDefault();
         const widgetEl = ev.target.closest(".widget");
         const widgetId = widgetEl ? widgetEl.dataset.id : null;

@@ -142,27 +142,47 @@ function onTouchMove(ev, canvasInstance) {
         const currentDistance = getTouchDistance(touches[0], touches[1]);
         const scale = currentDistance / canvasInstance.pinchState.startDistance;
         const newZoom = Math.max(0.25, Math.min(4, canvasInstance.pinchState.startZoom * scale));
-        AppState.setZoomLevel(newZoom);
 
-        // Also pan based on center point movement
+        // --- IMPROVED CENTERING MATH ---
         const currentCenterX = (touches[0].clientX + touches[1].clientX) / 2;
         const currentCenterY = (touches[0].clientY + touches[1].clientY) / 2;
-        const dx = currentCenterX - canvasInstance.pinchState.startCenterX;
-        const dy = currentCenterY - canvasInstance.pinchState.startCenterY;
-        canvasInstance.panX = canvasInstance.pinchState.startPanX + dx;
-        canvasInstance.panY = canvasInstance.pinchState.startPanY + dy;
+
+        // How much the zoom changed
+        const zoomFactor = newZoom / canvasInstance.pinchState.startZoom;
+
+        // The point we are zooming around (initial center) in canvas-space
+        // canvasX = (clientX - panX) / zoom
+        const pivotX = (canvasInstance.pinchState.startCenterX - canvasInstance.pinchState.startPanX) / canvasInstance.pinchState.startZoom;
+        const pivotY = (canvasInstance.pinchState.startCenterY - canvasInstance.pinchState.startPanY) / canvasInstance.pinchState.startZoom;
+
+        // New pan is: currentCenter - (pivot * newZoom)
+        canvasInstance.panX = currentCenterX - (pivotX * newZoom);
+        canvasInstance.panY = currentCenterY - (pivotY * newZoom);
+
+        AppState.setZoomLevel(newZoom);
         applyZoom(canvasInstance);
         return;
     }
 
-    // Cancel long press if touch moves significantly
+    // Cancel long press if touch moves significantly or if we are actively moving/resizing
     if (touches.length === 1 && canvasInstance.longPressTimer) {
         const touch = touches[0];
-        const dx = touch.clientX - (canvasInstance.touchState?.startTouchX || touch.clientX);
-        const dy = touch.clientY - (canvasInstance.touchState?.startTouchY || touch.clientY);
-        if (Math.hypot(dx, dy) > 10) {
+        const state = canvasInstance.touchState;
+
+        // If we are already in move/resize mode, immediately kill the timer
+        if (state?.mode === "move" || state?.mode === "resize" || state?.mode === "pan") {
             clearTimeout(canvasInstance.longPressTimer);
             canvasInstance.longPressTimer = null;
+        } else {
+            // Otherwise check for distance threshold
+            const startX = state?.startTouchX ?? state?.startX ?? touch.clientX;
+            const startY = state?.startTouchY ?? state?.startY ?? touch.clientY;
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+            if (Math.hypot(dx, dy) > 10) {
+                clearTimeout(canvasInstance.longPressTimer);
+                canvasInstance.longPressTimer = null;
+            }
         }
     }
 

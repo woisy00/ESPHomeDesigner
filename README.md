@@ -236,7 +236,7 @@ Most widgets (text, shapes, images, icons, QR codes) work on all platforms. Grap
 - RGB color picker, dark mode toggle, zoom controls
 - Smart spacing, alignment guides, and radial context menu
 - Widget grouping with preserved hierarchy
-- 55+ widget plugins (v0.9 modular architecture)
+- 55+ widget plugins (v1.0 modular architecture)
 
 **Hardware**
 - Buttons, buzzer, temp/humidity sensors exposed to Home Assistant
