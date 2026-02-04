@@ -332,7 +332,7 @@ export function applyZoom(canvasInstance) {
 /**
  * Centrally focuses an artboard in the viewport by adjusting panX/panY.
  */
-export function focusPage(canvasInstance, index, smooth = true) {
+export function focusPage(canvasInstance, index, smooth = true, fitZoom = false) {
     const wrappers = canvasInstance.canvas.querySelectorAll('.artboard-wrapper');
     const target = wrappers[index];
     if (target) {
@@ -342,8 +342,13 @@ export function focusPage(canvasInstance, index, smooth = true) {
 
         // If viewport has no size yet, defer to next frame to avoid off-screen jump
         if (vw === 0 || vh === 0) {
-            requestAnimationFrame(() => focusPage(canvasInstance, index, smooth));
+            requestAnimationFrame(() => focusPage(canvasInstance, index, smooth, fitZoom));
             return;
+        }
+
+        if (fitZoom) {
+            const fitScale = calculateZoomToFit(canvasInstance, index);
+            AppState.setZoomLevel(fitScale);
         }
 
         const zoom = AppState.zoomLevel;
@@ -358,6 +363,29 @@ export function focusPage(canvasInstance, index, smooth = true) {
 
         applyZoom(canvasInstance);
     }
+}
+
+/**
+ * Calculates the zoom level required to fit the current artboard fully within the viewport.
+ */
+export function calculateZoomToFit(canvasInstance, index = AppState.currentPageIndex) {
+    const wrappers = canvasInstance.canvas.querySelectorAll('.artboard-wrapper');
+    const target = wrappers[index];
+    if (!target) return 1.0;
+
+    const viewportRect = canvasInstance.viewport.getBoundingClientRect();
+    const padding = 64; // Visual safety padding around the artboard
+
+    const targetW = target.offsetWidth + padding;
+    const targetH = target.offsetHeight + padding;
+
+    const scaleX = viewportRect.width / targetW;
+    const scaleY = viewportRect.height / targetH;
+
+    // We want to fit both dimensions, so take the minimum scale
+    // Also clamp between 0.1 and 1.0 (we don't necessarily want to upscale to 1000% on huge screens)
+    const fitScale = Math.min(scaleX, scaleY);
+    return Math.max(0.1, Math.min(1.0, fitScale));
 }
 
 export function updateWidgetDOM(canvasInstance, widget, skipPluginRender = false) {

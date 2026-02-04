@@ -41,7 +41,13 @@ export class Canvas {
             this.render();
             // Focus the new page after render, unless suppressed
             if (!e.suppressFocus) {
-                this.focusPage(e.index);
+                // If it's the first time landing on this page index, zoom to fit
+                if (this._lastFocusedIndex !== e.index) {
+                    this.focusPage(e.index, true, true);
+                    this._lastFocusedIndex = e.index;
+                } else {
+                    this.focusPage(e.index);
+                }
             }
         });
         on(EVENTS.SELECTION_CHANGED, () => this.updateSelectionVisuals());
@@ -58,7 +64,9 @@ export class Canvas {
         // Handle window resizing to keep canvas centered
         this._boundResize = () => {
             if (AppState.currentPageIndex !== -1) {
-                this.focusPage(AppState.currentPageIndex, false);
+                // On resize, we want to maintain the fit if the user hasn't zoomed manually 
+                // but for now let's just refocus with fit as a default smart behavior.
+                this.focusPage(AppState.currentPageIndex, false, true);
             }
         };
         window.addEventListener("resize", this._boundResize);
@@ -124,8 +132,13 @@ export class Canvas {
     zoomIn() { zoomIn(this); }
     zoomOut() { zoomOut(this); }
     zoomReset() { zoomReset(this); }
-    focusPage(index, smooth = true) {
-        import('./canvas_renderer.js').then(m => m.focusPage(this, index, smooth));
+    zoomToFit() {
+        if (AppState.currentPageIndex !== -1) {
+            this.focusPage(AppState.currentPageIndex, true, true);
+        }
+    }
+    focusPage(index, smooth = true, fitZoom = false) {
+        import('./canvas_renderer.js').then(m => m.focusPage(this, index, smooth, fitZoom));
     }
 
     /**
