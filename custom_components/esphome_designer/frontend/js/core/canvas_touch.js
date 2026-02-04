@@ -164,25 +164,20 @@ function onTouchMove(ev, canvasInstance) {
         return;
     }
 
-    // Cancel long press if touch moves significantly or if we are actively moving/resizing
+    // Cancel long press if touch moves significantly
     if (touches.length === 1 && canvasInstance.longPressTimer) {
         const touch = touches[0];
         const state = canvasInstance.touchState;
 
-        // If we are already in move/resize mode, immediately kill the timer
-        if (state?.mode === "move" || state?.mode === "resize" || state?.mode === "pan") {
+        // Use a consistent threshold for cancellation (10px or interaction deadzone)
+        const startX = state?.startTouchX ?? state?.startX ?? touch.clientX;
+        const startY = state?.startTouchY ?? state?.startY ?? touch.clientY;
+        const dx = touch.clientX - startX;
+        const dy = touch.clientY - startY;
+
+        if (Math.hypot(dx, dy) > 10 || state?.hasMoved) {
             clearTimeout(canvasInstance.longPressTimer);
             canvasInstance.longPressTimer = null;
-        } else {
-            // Otherwise check for distance threshold
-            const startX = state?.startTouchX ?? state?.startX ?? touch.clientX;
-            const startY = state?.startTouchY ?? state?.startY ?? touch.clientY;
-            const dx = touch.clientX - startX;
-            const dy = touch.clientY - startY;
-            if (Math.hypot(dx, dy) > 10) {
-                clearTimeout(canvasInstance.longPressTimer);
-                canvasInstance.longPressTimer = null;
-            }
         }
     }
 

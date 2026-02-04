@@ -525,8 +525,11 @@ export function setupInteractions(canvasInstance) {
     });
 
     canvasInstance.canvas.addEventListener("contextmenu", (ev) => {
-        // Prevent context menu during active drag/resize interactions
-        if (canvasInstance.touchState || canvasInstance.dragState || canvasInstance.lassoState) {
+        // Prevent context menu ONLY if we have actually moved or are in a multi-finger state
+        if (canvasInstance.pinchState ||
+            (canvasInstance.touchState?.hasMoved) ||
+            (canvasInstance.dragState?.mode === "resize") ||
+            (canvasInstance.lassoState?.rect)) {
             ev.preventDefault();
             return;
         }
