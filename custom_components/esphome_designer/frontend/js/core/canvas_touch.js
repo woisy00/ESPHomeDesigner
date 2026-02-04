@@ -15,6 +15,10 @@ export function setupTouchInteractions(canvasInstance) {
         const touches = ev.touches;
         const rect = canvasInstance.viewport.getBoundingClientRect();
 
+        // Lock page scrolling during active interaction
+        document.body.classList.add("interaction-active");
+        ev.stopImmediatePropagation();
+
         if (touches.length === 2) {
             ev.preventDefault();
 
@@ -266,6 +270,8 @@ function onTouchEnd(ev, canvasInstance) {
     window.removeEventListener("touchmove", canvasInstance._boundTouchMove);
     window.removeEventListener("touchend", canvasInstance._boundTouchEnd);
     window.removeEventListener("touchcancel", canvasInstance._boundTouchEnd);
+
+    document.body.classList.remove("interaction-active");
 
     render(canvasInstance);
     clearSnapGuides(canvasInstance);
