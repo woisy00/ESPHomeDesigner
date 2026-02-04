@@ -1,5 +1,51 @@
-# Release Notes
+## v1.0.0 RC1 - The "Grand Cleanup" & Modular Renaissance
+**Release Date:** January 28, 2026
 
+### 🚀 Major Architectural Revolution
+- **Plugin-Based Widget Ecosystem:** A complete shift from a 3,800+ line monolithic exporter to a modular registry with **55+ independent widget plugins**. Every widget is now its own self-contained module, making the system faster, more stable, and easier to extend.
+- **Backend Modularization:** Massive backend refactor splitting the monolithic `http_api.py` and `yaml_parser.py` into dedicated `api/` and `yaml_parser/` directories. This improves stability and enables complex parsing logic for new platforms.
+- **Multi-Platform Rendering (Experimental):**
+  - **OpenEpaperLink (OEPL) Integration:** Full support for generating MQTT-based payloads for AP-flashed e-paper tags. Includes automated parsing of OEPL YAML arrays.
+  - **Open Display (ODP) v1 Protocol:** Initial support for the Open Display JSON standard for MQTT/HTTP based controllers.
+  - **Parsing Parity:** Both OEPL and ODP platforms support "Round-Trip" editing—import your existing payloads back into the designer canvas seamlessly.
+- **World View Canvas:** All project pages are now rendered as distinct artboards on a unified infinite stage. View your entire multi-page project at once for pixel-perfect cross-page consistency.
+- **Codebase Sanitization:** Removed 1450+ legacy files and consolidated 80+ redundant versions into a single, clean production-ready branch.
+
+### 🎨 GUI & Designer Enhancements
+- **Atomic Grouping Engine:** Groups now behave as unified containers. Draggable, resizable, and layer-persistent. Transporting a group between pages now preserves the entire internal hierarchy perfectly.
+- **Hierarchy Panel & Layer Management:** 
+  - **Full Synchronization:** Perfect real-time sync between the Canvas, the Hierarchy Tree View, and the YAML property editor.
+  - **Visual Layer Sorting:** Easily reorder widgets and groups via drag-and-drop in the hierarchy panel.
+  - **Relocated Layer Controls:** Quick-access "Front/Back" and "Up/Down" layer adjustment buttons integrated directly into the Hierarchy section.
+- **Interactive Precision Tools:** 
+  - **Canvas Rulers:** Pixel-accurate rulers that scale with zoom and highlight widget focal points.
+  - **Smart Spacing Guides:** Hold `Ctrl` to see real-time distance markers between widgets.
+  - **Batch Alignment:** New contextual toolbar for rapid Left/Center/Right/Top/Middle/Bottom alignment and distribution of multiple widgets.
+- **Focus Mode:** Custom panning algorithm (`focusPage`) that instantly centers any artboard in the viewport with a single click.
+- **Advanced Properties Accordion:** Semantic organization of widget settings (Transform, Appearance, Data, Events) with a redesigned UI for better readability.
+- **Refined Artboard Aesthetics:** High-fidelity triple-elevation drop shadows and active-page "lift" effects for a premium design feel.
+
+### 📦 New Specialist Widgets (ODP/Experimental)
+- **ODP Arc & Ellipse:** Native vector-based rendering for experimental platforms.
+- **ODP Polygon:** Define custom multi-point shapes with fill and stroke control.
+- **ODP Icon Sequence:** Easily create status bar sets or navigation rows.
+- **ODP Rectangle Pattern:** Advanced tiling for complex backgrounds.
+- **ODP Plot:** High-performance sensor history visualization for JSON-based displays.
+
+### 🐛 Bug Fixes & Refinements
+- **Viewport Scrollbar Cleanup:** Disabled conflicting native scrollbars in favor of 100% transform-based panning for smoother navigation.
+- **Display Lambda Indentation:** Resolved long-standing YAML validation errors caused by inconsistent indentation in hardware recipes.
+
+
+> [!WARNING]
+> **BREAKING CHANGES**
+> - **Project Compatibility:** Saved projects from versions prior to 0.9.0 will **not be automatically imported**. We strongly recommend backing up your old project JSON files or YAML snippets before updating.
+> - **Branding Rename:** The legacy `reterminal_dashboard` domain has been retired. The integration is now officially **`esphome_designer`**.
+
+
+---
+
+---
 
 ## v0.8.6.1 - Hotfix: Custom Recipe Caching
 

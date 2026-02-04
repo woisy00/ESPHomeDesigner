@@ -10,10 +10,25 @@ A Hardware Recipe is essentially a full ESPHome configuration file with one spec
 
 When you design a UI in the Designer and click "Generate YAML", the Designer takes your Hardware Recipe and injects the UI drawing code exactly where that placeholder is located.
 
-### The Magic Marker: `__LAMBDA_PLACEHOLDER__`
-Every recipe **must** contain this exact string inside the `display:` block's lambda section.
+### The "Captive Portal" Breakpoint
+
+Historically, the Designer used `captive_portal:` as a marker to split the file. **This is no longer strictly true.**
+The Designer now uses a "smart sanitization" process that scans the entire file and automatically disable system-level configuration keys (like `wifi`, `api`, `ota`, `captive_portal`) to prevent conflicts with the Designer's internal configuration.
+
+**Naming your Sections:**
+You can now safely use comments in your section headers (e.g., `sensor: # My LDR`), and the Designer will correctly identify and merge them.
+
+**Recommended Practice:**
+While the Designer *can* auto-sanitize your file, we still **strongly recommend** commenting out the system infrastructure sections yourself. This ensures that your recipe is visually valid and you know exactly what is being excluded.
 
 ```yaml
+# wifi:
+#   ssid: ...
+#
+# api:
+#
+# captive_portal:
+
 display:
   - platform: ...
     # ... other display settings ...
@@ -22,7 +37,9 @@ display:
 ```
 
 > [!NOTE]
-> **Philosophy Alignment:** The Designer strictly separates hardware definition from application logic. Any system-level configuration (like `wifi`, `api`, `captive_portal`) in your recipe will be automatically commented out during export to prevent conflicts.
+> **Philosophy Alignment:** The Designer strictly separates hardware definition from application logic.
+> Attempts to include system-level configuration (`logger`, `wifi`, `api`, `captive_portal`, `ota`) in your recipe will be ignored (commented out) by the import process.
+> The only exception is if you are using `packages`, where some shared configuration might be allowed.
 
 ---
 
@@ -65,7 +82,8 @@ The Designer looks for specific metadata in the form of comments at the top of y
 
 1. **Start with a working ESPHome YAML**: Take an existing, working configuration for your device.
 2. **Add Metadata**: Add the `# TARGET DEVICE`, `# Resolution`, and `# Shape` comments at the top.
-3. **Smart Sanitization (Optional)**: You can leave your system configuration (`esphome:`, `wifi:`, `api:`, etc.) in the file for testing. The Designer is "philosophy-aware" and will automatically comment these out when generating the final code.
+3. **Smart Sanitization**: **COMMENT OUT** all system infrastructure sections (`esphome:`, `wifi:`, `api:`, `ota:`, `captive_portal:`).
+4. **Valid YAML Only**: Ensure your display configuration appears **BELOW** the commented-out `captive_portal:` line. The Designer ignores everything above it.
 4. **Clean Up (Recommended)**: Remove any existing UI drawing logic (like `it.print`, `it.fill_screen`, etc.) from your `display` lambda.
 5. **Insert Placeholder**: Add `# __LAMBDA_PLACEHOLDER__` inside the lambda block.
 5. **Save**: Save the file with a `.yaml` extension (e.g., `my_awesome_device.yaml`).
@@ -78,7 +96,7 @@ The Designer looks for specific metadata in the form of comments at the top of y
 ## 🚀 Uploading and Using
 
 ### Where are they saved?
-- **Online Mode**: Recipes are saved in the `custom_components/reterminal_dashboard/frontend/hardware/` directory on your Home Assistant machine.
+- **Online Mode**: Recipes are saved in the `custom_components/esphome_designer/frontend/hardware/` directory on your Home Assistant machine.
 - **Offline Mode**: If you use the Designer without a backend, recipes are loaded into your browser's memory and will be lost on refresh.
 
 ### How to Upload
