@@ -29,8 +29,8 @@ jobs:
           
       - name: Create Zip for HACS
         run: |
-          cd custom_components
-          zip -r ../esphome_designer.zip esphome_designer
+          cd custom_components/esphome_designer
+          zip -r ../../esphome_designer.zip .
           
       - name: Create Release
         uses: softprops/action-gh-release@v2
