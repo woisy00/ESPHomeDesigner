@@ -490,6 +490,12 @@ export class Sidebar {
             window.app?.deviceSettings?.open();
         });
 
+        const mobileEditorSettingsBtn = document.getElementById('mobileEditorSettingsBtn');
+        mobileEditorSettingsBtn?.addEventListener('click', () => {
+            closeAll();
+            window.app?.editorSettings?.open();
+        });
+
         backdrop?.addEventListener('click', closeAll);
 
         // Auto-close on widget selection (mobile only)
