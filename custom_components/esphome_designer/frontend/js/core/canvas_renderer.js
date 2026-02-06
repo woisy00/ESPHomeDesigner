@@ -244,6 +244,12 @@ export function render(canvasInstance) {
         <div class="label">Add Page</div>
     `;
 
+    // Apply round display shape if applicable
+    const placeholderShape = AppState.getCanvasShape();
+    if (placeholderShape === "round" || placeholderShape === "circle") {
+        addPlaceholder.classList.add("round-display");
+    }
+
     // Click handler
     const handleClick = (e) => {
         Logger.log("[Canvas] Add Page placeholder clicked");

@@ -626,7 +626,6 @@
     border: 2px dashed rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.02);
-    min-height: 200px;
     cursor: pointer;
     transition: all 0.3s var(--t-base);
     opacity: 0.4;
@@ -634,6 +633,10 @@
     position: relative;
     user-select: none;
     flex-shrink: 0;
+}
+
+.add-page-placeholder.round-display {
+    border-radius: 50%;
 }
 
 .add-page-placeholder:hover {
