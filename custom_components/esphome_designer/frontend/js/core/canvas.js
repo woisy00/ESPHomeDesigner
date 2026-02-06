@@ -41,13 +41,19 @@ export class Canvas {
             this.render();
             // Focus the new page after render, unless suppressed
             if (!e.suppressFocus) {
+                // GUARD: Skip auto-zoom during active drag operations
+                // User must explicitly click on empty canvas to zoom to fit
+                const isDragActive = this.dragState || this.isExternalDragging || this.touchState;
+
                 // If it's the first time landing on this page index, zoom to fit
-                if (this._lastFocusedIndex !== e.index) {
+                // But NOT if we're mid-drag (prevents jarring zoom when dragging widgets between pages)
+                if (this._lastFocusedIndex !== e.index && !isDragActive) {
                     this.focusPage(e.index, true, true);
                     this._lastFocusedIndex = e.index;
-                } else {
+                } else if (!isDragActive) {
                     this.focusPage(e.index);
                 }
+                // If drag is active, skip focus entirely - maintain current view
             }
         });
         on(EVENTS.SELECTION_CHANGED, () => this.updateSelectionVisuals());

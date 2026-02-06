@@ -367,6 +367,7 @@ export function focusPage(canvasInstance, index, smooth = true, fitZoom = false)
 
 /**
  * Calculates the zoom level required to fit the current artboard fully within the viewport.
+ * Uses a device-aware minimum floor to prevent excessive zoom-out on small screens.
  */
 export function calculateZoomToFit(canvasInstance, index = AppState.currentPageIndex) {
     const wrappers = canvasInstance.canvas.querySelectorAll('.artboard-wrapper');
@@ -383,9 +384,16 @@ export function calculateZoomToFit(canvasInstance, index = AppState.currentPageI
     const scaleY = viewportRect.height / targetH;
 
     // We want to fit both dimensions, so take the minimum scale
-    // Also clamp between 0.1 and 1.0 (we don't necessarily want to upscale to 1000% on huge screens)
     const fitScale = Math.min(scaleX, scaleY);
-    return Math.max(0.1, Math.min(1.0, fitScale));
+
+    // Calculate a device-aware minimum zoom floor
+    // For small viewports, we don't want to zoom out too much
+    // Reference: 480px is a typical small screen width
+    const viewportSmallestDim = Math.min(viewportRect.width, viewportRect.height);
+    const minZoomFloor = Math.max(0.4, Math.min(1.0, viewportSmallestDim / 480));
+
+    // Clamp between the device-aware floor and 1.0
+    return Math.max(minZoomFloor, Math.min(1.0, fitScale));
 }
 
 export function updateWidgetDOM(canvasInstance, widget, skipPluginRender = false) {
