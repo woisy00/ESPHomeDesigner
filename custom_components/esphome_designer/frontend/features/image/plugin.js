@@ -139,7 +139,7 @@ const render = (el, widget, context) => {
         placeholder.style.textAlign = "center";
         placeholder.style.color = "#aaa";
         placeholder.style.fontSize = "11px";
-        placeholder.innerHTML = "🖼️<br/>Image Widget<br/><span style='font-size:9px;color:#ccc;'>Enter path in properties →</span>";
+        placeholder.innerHTML = "🖼️<br/>Image Widget<br/><span style='font-size:9px;color:#ccc;'>Enter valid path to resize →</span>";
         el.appendChild(placeholder);
     }
 };
@@ -226,10 +226,12 @@ export default {
     category: "Graphics",
     supportedModes: ['lvgl', 'direct', 'oepl', 'opendisplay'],
     defaults: {
-        path: "",
+        path: "/config/esphome/images/logo.png",
         url: "",
         invert: false,
-        size: "native"
+        size: "native",
+        width: 200,
+        height: 130
     },
     render,
     exportOpenDisplay: (w, { layout, page }) => {
