@@ -57,7 +57,7 @@ const exportLVGL = (w, { common, convertColor, formatOpacity, profile }) => {
         } else if (entityId.startsWith("script.")) {
             action = [{ "script.execute": entityId }];
         } else if (entityId.startsWith("button.") || entityId.startsWith("input_button.")) {
-            action = [{ "button.press": entityId }];
+            action = [{ "homeassistant.service": { service: "button.press", data: { entity_id: entityId } } }];
         } else if (entityId.startsWith("scene.")) {
             action = [{ "scene.turn_on": entityId }];
         } else {
