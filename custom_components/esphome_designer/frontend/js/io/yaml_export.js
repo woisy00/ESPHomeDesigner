@@ -36,7 +36,7 @@ export function highlightWidgetInSnippet(widgetIds) {
     if (!yaml) return;
 
     // Normalize input to array
-    const ids = Array.isArray(widgetIds) ? widgetIds : (widgetIds ? [widgetIds] : []);
+    let ids = Array.isArray(widgetIds) ? widgetIds : (widgetIds ? [widgetIds] : []);
 
     if (ids.length === 0) {
         // Clear selection if nothing is selected
@@ -46,6 +46,12 @@ export function highlightWidgetInSnippet(widgetIds) {
             lastHighlightRange = null;
         } catch (e) { }
         return;
+    }
+
+    // Only highlight the first (primary) widget to avoid spanning selection
+    // across non-adjacent widgets which would include unrelated code in between
+    if (ids.length > 1) {
+        ids = [ids[0]];
     }
 
     let minStart = -1;
@@ -128,7 +134,12 @@ export function highlightWidgetInSnippet(widgetIds) {
             }
 
             // Find the next widget or page marker to determine block end
-            const nextMarkers = ["# widget:", "// widget:", "// page:", "# id:"];
+            const nextMarkers = [
+                "# widget:", "// widget:", "// page:", "# id:",
+                "// ────────────────", // Widget separator
+                "// ═══════════════", // Page header
+                "// ▸ PAGE:"          // Page name marker
+            ];
 
             // Also check for common top-level standard ESPHome keys to prevent bleeding into global sections
             // Note: We check for newline + key to ensure it's a top-level start

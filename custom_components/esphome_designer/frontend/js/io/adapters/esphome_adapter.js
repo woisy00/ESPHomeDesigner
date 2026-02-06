@@ -676,10 +676,17 @@ export class ESPHomeAdapter extends BaseAdapter {
         lines.push(`int currentPage = id(display_page);`);
 
         pages.forEach((page, index) => {
+            const pageName = page.name || `Page ${index + 1}`;
+
+            // Visual page header for easier identification
+            lines.push(`// ═══════════════════════════════════════════════════════════════`);
+            lines.push(`// ▸ PAGE: ${pageName}`);
+            lines.push(`// ═══════════════════════════════════════════════════════════════`);
+
             lines.push(`if (currentPage == ${index}) {`);
 
             // Page Round-trip comments
-            lines.push(`  // page:name "${page.name || "Page " + (index + 1)}"`);
+            lines.push(`  // page:name "${pageName}"`);
             lines.push(`  // page:dark_mode "${page.dark_mode || "inherit"}"`);
             lines.push(`  // page:refresh_type "${page.refresh_type || "interval"}"`);
             lines.push(`  // page:refresh_time "${page.refresh_time || ""}"`);
@@ -692,7 +699,8 @@ export class ESPHomeAdapter extends BaseAdapter {
             lines.push(`  color_on = ${isDarkMode ? 'COLOR_WHITE' : 'COLOR_BLACK'};`);
 
             if (page.widgets) {
-                page.widgets.filter(w => !w.hidden && w.type !== 'group').forEach(w => {
+                const visibleWidgets = page.widgets.filter(w => !w.hidden && w.type !== 'group');
+                visibleWidgets.forEach((w, widgetIndex) => {
                     const widgetLines = this.generateWidget(w, {
                         ...context,
                         layout,
@@ -717,6 +725,11 @@ export class ESPHomeAdapter extends BaseAdapter {
                             // Remove min indent, then add 2 spaces base indent
                             return "  " + l.substring(safeMin);
                         }));
+
+                        // Add separator between widgets (but not after the last one)
+                        if (widgetIndex < visibleWidgets.length - 1) {
+                            lines.push(`  // ────────────────────────────────────────`);
+                        }
                     }
                 });
             }

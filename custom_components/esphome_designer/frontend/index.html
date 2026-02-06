@@ -32,7 +32,7 @@
   <header class="main-header" role="banner">
     <div class="main-header-title">
       <img src="assets/logo_header.png" alt="ESPHome Designer" class="logo-image">
-      <span><small style="opacity: 0.5; margin-left: 8px;">v1.0.0 RC2.5</small> <span id="currentLayoutDevice"
+      <span><small style="opacity: 0.5; margin-left: 8px;">v1.0.0 RC2.7</small> <span id="currentLayoutDevice"
           style="margin-left:8px; color:var(--accent);"></span></span>
     </div>
     <div class="main-header-actions desktop-only">
@@ -202,15 +202,32 @@
               style="width: auto; padding: 0 6px; border-radius: 4px;">
               <span class="mdi mdi-palette-outline" style="font-size: 14px;"></span>
             </button>
-            <button id="aiPromptBtn" class="btn btn-secondary btn-xs">AI Assistant</button>
-            <button id="copySnippetBtn" class="btn btn-secondary btn-xs">Copy</button>
+            <button id="aiPromptBtn" class="btn btn-secondary btn-xs btn-icon" title="AI Assistant"
+              style="width: auto; padding: 0 6px; border-radius: 4px;">
+              <span class="mdi mdi-robot-outline" style="font-size: 14px;"></span>
+            </button>
+            <button id="copySnippetBtn" class="btn btn-secondary btn-xs" title="Copy full YAML output">
+              <span class="mdi mdi-content-copy" style="font-size: 12px; margin-right: 4px;"></span>All
+            </button>
+            <button id="copyLambdaBtn" class="btn btn-secondary btn-xs" title="Copy display lambda only (C++ code)">
+              <span class="mdi mdi-content-copy" style="font-size: 12px; margin-right: 4px;"></span>λ
+            </button>
             <button id="copyOEPLServiceBtn" class="btn btn-secondary btn-xs" style="display:none;"
-              title="Copy full HA Service Call">HA Service (OEPL)</button>
+              title="Copy full HA Service Call">
+              <span class="mdi mdi-content-copy" style="font-size: 12px; margin-right: 4px;"></span>OEPL
+            </button>
             <button id="copyODPServiceBtn" class="btn btn-secondary btn-xs" style="display:none;"
-              title="Copy full HA Service Call">HA Service (ODP)</button>
-            <button id="fullscreenSnippetBtn" class="btn btn-secondary btn-xs">Full</button>
-            <button id="updateLayoutBtn" class="btn btn-secondary btn-xs"
-              title="Import YAML back to canvas">Update</button>
+              title="Copy full HA Service Call">
+              <span class="mdi mdi-content-copy" style="font-size: 12px; margin-right: 4px;"></span>ODP
+            </button>
+            <button id="fullscreenSnippetBtn" class="btn btn-secondary btn-xs btn-icon" title="Expand code panel"
+              style="width: auto; padding: 0 6px; border-radius: 4px;">
+              <span class="mdi mdi-fullscreen" style="font-size: 14px;"></span>
+            </button>
+            <button id="updateLayoutBtn" class="btn btn-secondary btn-xs btn-icon" title="Import YAML back to canvas"
+              style="width: auto; padding: 0 6px; border-radius: 4px;">
+              <span class="mdi mdi-import" style="font-size: 14px;"></span>
+            </button>
           </div>
         </div>
         <div id="oeplNotice" class="oepl-notice hidden"

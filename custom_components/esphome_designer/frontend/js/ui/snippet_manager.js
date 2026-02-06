@@ -62,7 +62,36 @@ export class SnippetManager {
         const updateLayoutBtn = document.getElementById('updateLayoutBtn');
         if (updateLayoutBtn) {
             updateLayoutBtn.addEventListener('click', async () => {
-                await this.handleUpdateLayoutFromSnippetBox();
+                const iconSpan = updateLayoutBtn.querySelector('.mdi');
+                const originalClass = iconSpan?.className || '';
+
+                // Show loading state
+                if (iconSpan) {
+                    iconSpan.className = 'mdi mdi-loading mdi-spin';
+                }
+                updateLayoutBtn.disabled = true;
+
+                try {
+                    await this.handleUpdateLayoutFromSnippetBox();
+
+                    // Show success state
+                    if (iconSpan) {
+                        iconSpan.className = 'mdi mdi-check';
+                        setTimeout(() => {
+                            iconSpan.className = originalClass;
+                        }, 1500);
+                    }
+                } catch (err) {
+                    // Show error state
+                    if (iconSpan) {
+                        iconSpan.className = 'mdi mdi-alert-circle-outline';
+                        setTimeout(() => {
+                            iconSpan.className = originalClass;
+                        }, 1500);
+                    }
+                } finally {
+                    updateLayoutBtn.disabled = false;
+                }
             });
         }
 
@@ -71,6 +100,14 @@ export class SnippetManager {
         if (copySnippetBtn) {
             copySnippetBtn.addEventListener('click', async () => {
                 this.copySnippetToClipboard(copySnippetBtn);
+            });
+        }
+
+        // Copy Lambda Only Button
+        const copyLambdaBtn = document.getElementById('copyLambdaBtn');
+        if (copyLambdaBtn) {
+            copyLambdaBtn.addEventListener('click', async () => {
+                this.copyLambdaToClipboard(copyLambdaBtn);
             });
         }
 
@@ -248,6 +285,10 @@ export class SnippetManager {
 
                     const copyODPBtn = document.getElementById('copyODPServiceBtn');
                     if (copyODPBtn) copyODPBtn.style.display = isODP ? 'inline-block' : 'none';
+
+                    // Lambda button only makes sense for ESPHome (C++ lambda), not OEPL/ODP (JSON)
+                    const copyLambdaBtn = document.getElementById('copyLambdaBtn');
+                    if (copyLambdaBtn) copyLambdaBtn.style.display = (isOEPL || isODP) ? 'none' : 'inline-block';
 
                     const importBtn = document.getElementById('updateLayoutBtn');
                     if (importBtn) importBtn.style.display = 'inline-block';
@@ -530,6 +571,100 @@ export class SnippetManager {
         } catch (err) {
             Logger.error("Copy failed:", err);
             showToast("Unable to copy snippet", "error");
+        }
+    }
+
+    /**
+     * Copies only the display lambda (C++ code) to clipboard.
+     * Useful for users who want to paste just the drawing code into their existing config.
+     */
+    async copyLambdaToClipboard(btnElement) {
+        const snippetBox = document.getElementById('snippetBox');
+        if (!snippetBox) return;
+
+        const yaml = snippetBox.value || "";
+        const originalText = btnElement.textContent;
+
+        // Find the display section, then locate the lambda within it
+        // The display section ends at the next top-level key (no leading whitespace)
+        const displayIdx = yaml.search(/^display:\s*$/m);
+
+        if (displayIdx === -1) {
+            showToast("No display section found in output", "warning");
+            return;
+        }
+
+        // Get everything after 'display:' until the end or next top-level section
+        const afterDisplay = yaml.substring(displayIdx);
+
+        // Find where the display section ends (next unindented key or end of file)
+        const nextSectionMatch = afterDisplay.match(/\n[a-z_]+:\s*(?:\n|$)/);
+        const displaySection = nextSectionMatch
+            ? afterDisplay.substring(0, nextSectionMatch.index)
+            : afterDisplay;
+
+        // Now find the lambda within the display section
+        const lambdaMatch = displaySection.match(/lambda:\s*\|-\n([\s\S]*?)$/);
+
+        if (!lambdaMatch) {
+            showToast("No display lambda found in output", "warning");
+            return;
+        }
+
+        // Get the indented lambda content and remove consistent indentation
+        let lambdaContent = lambdaMatch[1];
+
+        // Find minimum indentation (excluding empty lines)
+        const lines = lambdaContent.split('\n');
+        const nonEmptyLines = lines.filter(l => l.trim().length > 0);
+        if (nonEmptyLines.length === 0) {
+            showToast("Lambda appears to be empty", "warning");
+            return;
+        }
+
+        const minIndent = Math.min(...nonEmptyLines.map(l => l.match(/^(\s*)/)[1].length));
+
+        // Remove the consistent indentation
+        const cleanedLambda = lines
+            .map(l => l.length >= minIndent ? l.substring(minIndent) : l)
+            .join('\n')
+            .trim();
+
+        const setSuccessState = () => {
+            btnElement.textContent = "Copied!";
+            btnElement.style.minWidth = btnElement.offsetWidth + "px";
+            setTimeout(() => {
+                btnElement.textContent = originalText;
+                btnElement.style.minWidth = "";
+            }, 2000);
+        };
+
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(cleanedLambda);
+                showToast("Display lambda copied to clipboard", "success");
+                setSuccessState();
+            } else {
+                const textarea = document.createElement("textarea");
+                textarea.value = cleanedLambda;
+                textarea.style.position = "fixed";
+                textarea.style.left = "-999999px";
+                textarea.style.top = "-999999px";
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                    document.execCommand("copy");
+                    showToast("Display lambda copied to clipboard", "success");
+                    setSuccessState();
+                } catch {
+                    showToast("Unable to copy. Try selecting and copying manually.", "error");
+                }
+                document.body.removeChild(textarea);
+            }
+        } catch (err) {
+            Logger.error("Copy lambda failed:", err);
+            showToast("Unable to copy lambda", "error");
         }
     }
 
