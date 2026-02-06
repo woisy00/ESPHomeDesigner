@@ -397,6 +397,57 @@ export function focusPage(canvasInstance, index, smooth = true, fitZoom = false)
 }
 
 /**
+ * Zooms and pans to show all artboards in the viewport.
+ */
+export function zoomToFitAll(canvasInstance, smooth = true) {
+    const wrappers = canvasInstance.canvas.querySelectorAll('.artboard-wrapper');
+    if (wrappers.length === 0) return;
+
+    // The canvas-stage has 1000px padding and artboards have 150px gap.
+    // We calculate bounds in local canvas coordinates.
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+    wrappers.forEach(wrapper => {
+        const x = wrapper.offsetLeft;
+        const y = wrapper.offsetTop;
+        const w = wrapper.offsetWidth;
+        const h = wrapper.offsetHeight;
+
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + w);
+        maxY = Math.max(maxY, y + h);
+    });
+
+    const viewportRect = canvasInstance.viewport.getBoundingClientRect();
+    const vw = viewportRect.width;
+    const vh = viewportRect.height;
+    if (vw === 0 || vh === 0) return;
+
+    const padding = 80;
+    const boxW = (maxX - minX) + padding;
+    const boxH = (maxY - minY) + padding;
+
+    const scaleX = vw / boxW;
+    const scaleY = vh / boxH;
+    let fitScale = Math.min(scaleX, scaleY);
+
+    // Apply sane limits
+    fitScale = Math.max(0.05, Math.min(2.0, fitScale));
+
+    AppState.setZoomLevel(fitScale);
+
+    // Center the bounding box
+    const centerX = minX + (maxX - minX) / 2;
+    const centerY = minY + (maxY - minY) / 2;
+
+    canvasInstance.panX = (vw / 2) - (centerX * fitScale);
+    canvasInstance.panY = (vh / 2) - (centerY * fitScale);
+
+    applyZoom(canvasInstance);
+}
+
+/**
  * Calculates the zoom level required to fit the current artboard fully within the viewport.
  * Uses a device-aware minimum floor to prevent excessive zoom-out on small screens.
  */

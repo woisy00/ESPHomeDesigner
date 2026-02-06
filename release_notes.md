@@ -1,3 +1,29 @@
+## v1.0.0 RC2 - Navigation & Refinement Update
+**Release Date:** February 6, 2026
+
+### 🚀 Improved Navigation & Zoom
+- **Zoom to Fit All Pages**: new "Grid View" icon in the view toolbar.
+- **Selectable PAGES Header**: Clicking the "PAGES" sidebar header now instantly zooms and pans to see all artboards on the canvas at once.
+- **Double-Click to Focus**: Double-clicking an empty area of any artboard now zooms and recenters precisely on that page. Single-clicking selects the page context without jarring camera jumps.
+- **Improved Reset View (Ctrl+0)**: The reset view command is now smarter—it will center and fit the currently selected page instead of just resetting to absolute zero.
+
+### 🎨 Canvas & UI Enhancements
+- **Dynamic Artboard Headers**: Page headers now automatically adapt their width to match the device profile's width, ensuring a cleaner visual alignment.
+- **Better Reframing for Smaller Devices**: Improved `focusPage` algorithm that ensures optimal zooming for mobile and small tablets, preventing artboards from being cropped.
+- **Page Renaming**: Pages can now be renamed directly, making multi-page project organization much easier.
+- **Duplicate Page**: Added ability to copy/duplicate entire pages including all widgets and their properties.
+
+### 📦 Hardware & Stability
+- **Clear Hardware Profiles**: Refreshing hardware profiles now clearly distinguishes between **locally stored** custom profiles and **default** built-in recipes.
+- **Better Multi-Widget Drag & Drop**: Multiple widgets can now be dragged between pages smoothly using high-performance drag ghosts. The canvas no longer aggressively zooms during these operations, allowing you to see exactly where you are dropping your widgets.
+- **Automatic Recentering**: The canvas now automatically recenters and zooms to fit whenever you change the device profile, orientation, or hardware settings in the Device Settings modal.
+
+### 🐛 Bug Fixes & Refinements
+- **Cross-Page Drag Clamping**: Fixed an issue where widgets dropped between artboards could end up in "neverland". Snapping and clamping are now strictly enforced on drop.
+- **Header Selection Consistency**: The PAGES header in the sidebar now has visual hover feedback and better title tooltips.
+
+---
+
 ## v1.0.0 RC1 - The "Grand Cleanup" & Modular Renaissance
 **Release Date:** January 28, 2026
 

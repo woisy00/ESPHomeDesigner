@@ -108,6 +108,8 @@ class AppStateFacade {
     updateProtocolHardware(updates) {
         Object.assign(this.project.state.protocolHardware, updates);
         emit(EVENTS.SETTINGS_CHANGED);
+        // Force canvas refocus when protocol dimensions change
+        emit(EVENTS.PAGE_CHANGED, { index: this.currentPageIndex, forceFocus: true });
     }
 
     // --- Persistence ---
@@ -246,6 +248,11 @@ class AppStateFacade {
         if (newSettings.device_model) this.project.state.deviceModel = newSettings.device_model;
 
         emit(EVENTS.STATE_CHANGED);
+
+        // If settings that affect canvas layout changed, trigger a refocus
+        if (newSettings.device_model || newSettings.orientation || newSettings.custom_hardware) {
+            emit(EVENTS.PAGE_CHANGED, { index: this.currentPageIndex, forceFocus: true });
+        }
     }
 
     setDeviceName(name) {
@@ -257,6 +264,8 @@ class AppStateFacade {
         this.project.state.deviceModel = model;
         this.updateLayoutIndicator();
         emit(EVENTS.STATE_CHANGED);
+        // Also trigger canvas refocus on model change
+        emit(EVENTS.PAGE_CHANGED, { index: this.currentPageIndex, forceFocus: true });
     }
     setCurrentLayoutId(id) {
         this.project.state.currentLayoutId = id;
@@ -279,6 +288,8 @@ class AppStateFacade {
     setCustomHardware(config) {
         this.project.state.customHardware = config;
         emit(EVENTS.STATE_CHANGED);
+        // Trigger canvas refocus when custom hardware (resolution) changes
+        emit(EVENTS.PAGE_CHANGED, { index: this.currentPageIndex, forceFocus: true });
     }
 
     addWidget(w, pageIndex = null) {

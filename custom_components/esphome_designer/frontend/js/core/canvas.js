@@ -50,23 +50,13 @@ export class Canvas {
                 return;
             }
 
-            // Focus the new page after render, unless suppressed
-            if (!e.suppressFocus) {
-                // GUARD: Skip auto-zoom during active drag operations
-                // User must explicitly click on empty canvas to zoom to fit
-                const isDragActive = this.dragState || this.isExternalDragging || this.touchState;
-
-                // If it's the first time landing on this page index, zoom to fit
-                // But NOT if we're mid-drag (prevents jarring zoom when dragging widgets between pages)
-                if (this._lastFocusedIndex !== e.index && !isDragActive) {
-                    this.focusPage(e.index, true, true);
-                    this._lastFocusedIndex = e.index;
-                } else if (!isDragActive) {
-                    this.focusPage(e.index);
-                    this._lastFocusedIndex = e.index;
-                }
-                // If drag is active, skip focus entirely - maintain current view
+            // Focus the new page if explicitly requested (e.g. from sidebar or reset view)
+            if (e.forceFocus) {
+                this.focusPage(e.index, true, true);
             }
+
+            // Sync the last focused index.
+            this._lastFocusedIndex = e.index;
         });
         on(EVENTS.SELECTION_CHANGED, () => this.updateSelectionVisuals());
         on(EVENTS.SETTINGS_CHANGED, () => {
@@ -78,6 +68,16 @@ export class Canvas {
             this.applyZoom();
             this.rulers.update();
         });
+
+        // Pages Header (clickable to fit all)
+        const pagesHeader = document.getElementById('pagesHeader');
+        if (pagesHeader) {
+            pagesHeader.addEventListener('click', (e) => {
+                // Only trigger if we aren't clicking the chevron (which is for collapsing)
+                if (e.target.closest('.chevron')) return;
+                this.zoomToFitAll();
+            });
+        }
 
         // Handle window resizing to keep canvas centered
         this._boundResize = () => {
@@ -144,6 +144,12 @@ export class Canvas {
         setupZoomControls(this);
         setupDragAndDrop(this);
         setupTouchInteractions(this);
+
+        // Grid View / Fit All button
+        const fitAllBtn = document.getElementById('zoomToFitAllBtn');
+        if (fitAllBtn) {
+            fitAllBtn.onclick = () => this.zoomToFitAll();
+        }
     }
 
     // Exposed methods for external callers (if any) or internal use
@@ -154,6 +160,9 @@ export class Canvas {
         if (AppState.currentPageIndex !== -1) {
             this.focusPage(AppState.currentPageIndex, true, true);
         }
+    }
+    zoomToFitAll(smooth = true) {
+        import('./canvas_renderer.js').then(m => m.zoomToFitAll(this, smooth));
     }
     focusPage(index, smooth = true, fitZoom = false) {
         import('./canvas_renderer.js').then(m => m.focusPage(this, index, smooth, fitZoom));

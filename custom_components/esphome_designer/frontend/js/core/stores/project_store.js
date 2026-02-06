@@ -119,7 +119,7 @@ export class ProjectStore {
         }
 
         emit(EVENTS.STATE_CHANGED);
-        emit(EVENTS.PAGE_CHANGED, { index: this.state.currentPageIndex });
+        emit(EVENTS.PAGE_CHANGED, { index: this.state.currentPageIndex, forceFocus: true });
     }
 
     /**
@@ -146,7 +146,7 @@ export class ProjectStore {
 
         this.rebuildWidgetsIndex();
         emit(EVENTS.STATE_CHANGED);
-        emit(EVENTS.PAGE_CHANGED, { index: this.state.currentPageIndex });
+        emit(EVENTS.PAGE_CHANGED, { index: this.state.currentPageIndex, forceFocus: true });
         return newPage;
     }
 
@@ -165,7 +165,7 @@ export class ProjectStore {
 
         this.rebuildWidgetsIndex();
         emit(EVENTS.STATE_CHANGED);
-        emit(EVENTS.PAGE_CHANGED, { index: this.state.currentPageIndex });
+        emit(EVENTS.PAGE_CHANGED, { index: this.state.currentPageIndex, forceFocus: true });
     }
 
     duplicatePage(index) {
@@ -204,7 +204,7 @@ export class ProjectStore {
 
         this.rebuildWidgetsIndex();
         emit(EVENTS.STATE_CHANGED);
-        emit(EVENTS.PAGE_CHANGED, { index: this.state.currentPageIndex });
+        emit(EVENTS.PAGE_CHANGED, { index: this.state.currentPageIndex, forceFocus: true });
 
         return newPage;
     }

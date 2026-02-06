@@ -12,6 +12,10 @@ import { getColorStyle } from '../utils/device.js'; // Import authentic color he
 let lastClickTime = 0;
 let lastClickWidgetId = null;
 
+// Tracking for background double-clicks (empty canvas)
+let lastBackgroundClickTime = 0;
+let lastBackgroundClickIndex = null;
+
 /**
  * Creates a floating drag ghost that follows the cursor during widget drags.
  * This enables smooth cross-page dragging without the widget being clamped to artboard bounds.
@@ -359,9 +363,6 @@ export function setupInteractions(canvasInstance) {
                 AppState.selectWidgets(prevSelection.includes(activeWidgetId) ? prevSelection : [activeWidgetId]);
             }
 
-            // Centralize focus on the new page. Only fit zoom if we clicked the background (not a widget).
-            focusPage(canvasInstance, pageIndex, true, !activeWidgetId);
-
             // Re-query artboard after potential re-render
             const newArtboard = canvasInstance.canvas.querySelector(`.artboard[data-index="${pageIndex}"]`);
             if (newArtboard) currentArtboardEl = newArtboard;
@@ -379,9 +380,6 @@ export function setupInteractions(canvasInstance) {
             window.addEventListener("mouseup", canvasInstance._boundMouseUp);
             ev.preventDefault();
             return;
-        } else if (isBackgroundClick) {
-            // Re-center and fit current page if background clicked
-            focusPage(canvasInstance, pageIndex, true, true);
         }
 
         const rect = currentArtboardEl.getBoundingClientRect();
@@ -505,7 +503,16 @@ export function setupInteractions(canvasInstance) {
             const startX = (ev.clientX - rect.left) / zoom;
             const startY = (ev.clientY - rect.top) / zoom;
 
+            const now = Date.now();
+            const isDoubleClick = (pageIndex === lastBackgroundClickIndex && (now - lastBackgroundClickTime < 300));
+            lastBackgroundClickTime = now;
+            lastBackgroundClickIndex = pageIndex;
+
             canvasInstance.lassoState = {
+                startTime: now,
+                isDoubleClick,
+                // Only consider focal zoom if we switch pages OR it's a double click
+                focusParams: (isDoubleClick || (isSwitching && !activeWidgetId)) ? { index: pageIndex, fitZoom: isDoubleClick } : null,
                 startX,
                 startY,
                 rect: null,
@@ -1008,13 +1015,32 @@ export function onMouseUp(ev, canvasInstance) {
             canvasInstance.lassoEl = null;
         }
 
-        if (canvasInstance.lassoState.rect) {
+        const duration = Date.now() - canvasInstance.lassoState.startTime;
+        const hasMoved = !!canvasInstance.lassoState.rect;
+
+        if (hasMoved) {
             const finalSelection = canvasInstance.lassoState.currentSelection || [];
             AppState.selectWidgets(finalSelection);
         } else {
             // Clicked without dragging - clear selection
             if (!canvasInstance.lassoState.isAdditive) {
                 AppState.selectWidgets([]);
+            }
+
+            // ONLY zoom/fit if no movement occurred and zoom was requested (double click or page switch)
+            if (canvasInstance.lassoState.focusParams) {
+                const { index, fitZoom } = canvasInstance.lassoState.focusParams;
+                // If fitZoom is true (double click), we always focus. 
+                // If fitZoom is false (page switch via single click), we might just want to switch context without moving camera,
+                // BUT the user specifically asked that ONLY double click zoom and recenter.
+                if (fitZoom) {
+                    // Strictly recenter ONLY the currently selected page as per state
+                    focusPage(canvasInstance, AppState.currentPageIndex, true, true);
+                } else if (duration < 300) {
+                    // This was a single click page switch - we ALREADY switched context in mousedown
+                    // so we do nothing here to satisfy "selecting a widget from another page should no recenter"
+                    // and "only double click zooms and recenters".
+                }
             }
         }
 
@@ -1260,8 +1286,8 @@ function performZoom(delta, canvasInstance) {
 
 export function zoomReset(canvasInstance) {
     AppState.setZoomLevel(1.0);
-    // Focus the first page (Overview) to reset the view completely
-    canvasInstance.focusPage(0, true);
+    // Focus the current page to reset the view on what the user is working on
+    canvasInstance.focusPage(AppState.currentPageIndex, true);
 }
 
 export function setupDragAndDrop(canvasInstance) {

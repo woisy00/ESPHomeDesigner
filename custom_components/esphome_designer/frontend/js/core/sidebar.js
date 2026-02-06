@@ -205,7 +205,7 @@ export class Sidebar {
             };
 
             item.onclick = () => {
-                AppState.setCurrentPageIndex(index);
+                AppState.setCurrentPageIndex(index, { forceFocus: true });
             };
 
             item.ondblclick = (e) => {
