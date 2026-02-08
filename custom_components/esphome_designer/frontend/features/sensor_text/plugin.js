@@ -111,6 +111,7 @@ const render = (el, widget, { getColorStyle }) => {
 
     const applyAlign = (align, element) => {
         if (!align) return;
+        // Fix #268: Robust alignment
         if (align.includes("LEFT")) element.style.textAlign = "left";
         else if (align.includes("RIGHT")) element.style.textAlign = "right";
         else element.style.textAlign = "center";
@@ -118,10 +119,32 @@ const render = (el, widget, { getColorStyle }) => {
 
     const applyFlexAlign = (align, element) => {
         if (!align) return;
+
+        // Horizontal (Main Axis for Row, Cross Axis for Column - handled by specific flex-direction later)
+        // But here we assume row or column? 
+        // sensor_text uses:
+        // - label_value: row (alignItems=baseline, justifyContent=start)
+        // - label_newline_value: column (alignItems needs to match text align)
+
+        // Let's standardise based on "justifyContent" as primary axis alignment
+        // and "alignItems" as cross axis.
+
+        // However, the caller sets flex-direction.
+        // This helper is used for the main container `el` which is Flex.
+        // `el` style is display:flex. Direction is not set here (defaults to row, but often set to column by plugin? No, sensor_text defaults `el` to just flex).
+        // Wait, line 110: el.style.display = "flex";
+        // It doesn't set direction. Default is ROW.
+
+        // If ROW:
+        // justifyContent = Horizontal (Left/Right/Center)
+        // alignItems = Vertical (Top/Bottom/Center)
+
+        // Horizontal
         if (align.includes("LEFT")) element.style.justifyContent = "flex-start";
         else if (align.includes("RIGHT")) element.style.justifyContent = "flex-end";
         else element.style.justifyContent = "center";
 
+        // Vertical
         if (align.includes("TOP")) element.style.alignItems = "flex-start";
         else if (align.includes("BOTTOM")) element.style.alignItems = "flex-end";
         else element.style.alignItems = "center";
@@ -385,12 +408,18 @@ export default {
             textLambda = `"${fmt}"`;
         }
 
-        const alignMap = {
-            "CENTER": "CENTER", "LEFT": "LEFT", "RIGHT": "RIGHT",
-            "TOP": "CENTER", "BOTTOM": "CENTER",
-            "TOP_LEFT": "LEFT", "TOP_RIGHT": "RIGHT", "top_left": "LEFT"
-        };
-        const textAlign = alignMap[p.text_align] || alignMap[p.value_align] || "CENTER";
+        // Fix #268: Robust alignment mapping for LVGL
+        let textAlign = "CENTER";
+        const rawAlign = p.text_align || p.value_align || "TOP_LEFT";
+
+        if (rawAlign.includes("LEFT")) {
+            textAlign = "LEFT";
+        } else if (rawAlign.includes("RIGHT")) {
+            textAlign = "RIGHT";
+        } else {
+            // CENTER, TOP_CENTER, BOTTOM_CENTER -> CENTER
+            textAlign = "CENTER";
+        }
 
         return {
             label: {

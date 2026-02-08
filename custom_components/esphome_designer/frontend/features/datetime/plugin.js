@@ -16,13 +16,17 @@ const render = (el, widget, { getColorStyle }) => {
 
     const applyFlexAlign = (align, element) => {
         if (!align) return;
+        // Fix #268: Robust alignment
+
+        // Horizontal (Main Axis -> Justify Content)
         if (align.includes("LEFT")) element.style.alignItems = "flex-start";
         else if (align.includes("RIGHT")) element.style.alignItems = "flex-end";
-        else element.style.alignItems = "center";
+        else element.style.alignItems = "center"; // CENTER
 
+        // Vertical (Cross Axis -> Align Items)
         if (align.includes("TOP")) element.style.justifyContent = "flex-start";
         else if (align.includes("BOTTOM")) element.style.justifyContent = "flex-end";
-        else element.style.justifyContent = "center";
+        else element.style.justifyContent = "center"; // CENTER
     };
     applyFlexAlign(textAlign, el);
 
@@ -255,14 +259,22 @@ export default {
         lines.push(`        {`);
         lines.push(`          auto now = id(ha_time).now();`);
 
-        // Alignment Setup
+        // Alignment Setup (Fix #268: Robust parsing)
         let alignH = "LEFT";
-        if (textAlign.includes("CENTER")) alignH = "CENTER";
-        else if (textAlign.includes("RIGHT")) alignH = "RIGHT";
+        if (textAlign.includes("RIGHT")) {
+            alignH = "RIGHT";
+        } else if (textAlign.endsWith("CENTER") || textAlign === "CENTER") {
+            alignH = "CENTER";
+        }
+        // else LEFT
 
         let alignV = "TOP";
-        if (textAlign.includes("BOTTOM")) alignV = "BOTTOM";
-        else if (textAlign.includes("CENTER") || textAlign === "CENTER" || (!textAlign.includes("TOP") && !textAlign.includes("BOTTOM"))) alignV = "CENTER";
+        if (textAlign.includes("BOTTOM")) {
+            alignV = "BOTTOM";
+        } else if (textAlign.startsWith("CENTER") || textAlign === "CENTER") {
+            alignV = "CENTER";
+        }
+        // else TOP
 
         // Map to ESPHome constants (explicit)
         const getEspAlign = (h, v) => {

@@ -35,18 +35,30 @@ const render = (el, widget, { getColorStyle }) => {
     body.style.flexShrink = "0";
 
     // Set alignment
-    if (textAlign.includes("CENTER")) body.style.alignItems = "center";
-    else if (textAlign.includes("RIGHT")) body.style.alignItems = "flex-end";
-    else body.style.alignItems = "flex-start";
+    // Fix #268: Robust alignment for preview (Flex Column: alignItems=Horizontal, justifyContent=Vertical)
 
-    if (textAlign.startsWith("CENTER")) body.style.justifyContent = "center";
-    else if (textAlign.startsWith("BOTTOM")) body.style.justifyContent = "flex-end";
-    else body.style.justifyContent = "flex-start";
+    // Horizontal Alignment (Cross Axis)
+    if (textAlign.includes("RIGHT")) {
+        body.style.alignItems = "flex-end";
+        body.style.textAlign = "right";
+    } else if (textAlign.includes("LEFT")) {
+        body.style.alignItems = "flex-start";
+        body.style.textAlign = "left";
+    } else {
+        // CENTER, TOP_CENTER, BOTTOM_CENTER
+        body.style.alignItems = "center";
+        body.style.textAlign = "center";
+    }
 
-    // Text alignment
-    if (textAlign.includes("CENTER")) body.style.textAlign = "center";
-    else if (textAlign.includes("RIGHT")) body.style.textAlign = "right";
-    else body.style.textAlign = "left";
+    // Vertical Alignment (Main Axis)
+    if (textAlign.includes("BOTTOM")) {
+        body.style.justifyContent = "flex-end";
+    } else if (textAlign.includes("TOP")) {
+        body.style.justifyContent = "flex-start";
+    } else {
+        // CENTER_*, or just CENTER
+        body.style.justifyContent = "center";
+    }
 
     // Check if we should parse colors
     const shouldParseColors = !!props.parse_colors;
@@ -72,13 +84,26 @@ const render = (el, widget, { getColorStyle }) => {
 
 const exportLVGL = (w, { common, convertColor, convertAlign, getLVGLFont, formatOpacity }) => {
     const p = w.props || {};
+
+    // Fix #268: Properly map composite alignments to valid LVGL text_align (LEFT/CENTER/RIGHT)
+    let textAlign = "left";
+    const rawAlign = p.text_align || "TOP_LEFT";
+
+    if (rawAlign.includes("RIGHT")) {
+        textAlign = "right";
+    } else if (rawAlign.includes("CENTER") && !rawAlign.includes("LEFT")) {
+        // "CENTER_RIGHT" -> right (caught above), "CENTER_LEFT" -> left (default), "CENTER" -> center
+        // "TOP_CENTER", "BOTTOM_CENTER" -> center
+        textAlign = "center";
+    }
+
     return {
         label: {
             ...common,
             text: `"${p.text || 'Text'}"`,
             text_font: getLVGLFont(p.font_family, p.font_size, p.font_weight, p.italic),
             text_color: convertColor(p.color || p.text_color),
-            text_align: (convertAlign(p.text_align) || "left").replace("top_", "").replace("bottom_", ""),
+            text_align: textAlign,
             bg_color: p.bg_color === "transparent" ? undefined : convertColor(p.bg_color),
             opa: formatOpacity(p.opa)
         }
@@ -221,29 +246,35 @@ export default {
         const cond = getConditionCheck(w);
         if (cond) lines.push(`        ${cond}`);
 
-        // Handle simple alignment for printf
+        // Robust alignment logic (Fix #268)
         let x = w.x;
         let y = w.y;
-        let align = "TextAlign::TOP_LEFT";
 
-        if (textAlign.includes("CENTER")) {
-            x = Math.round(w.x + w.width / 2);
-            align = "TextAlign::TOP_CENTER";
-        } else if (textAlign.includes("RIGHT")) {
+        // Horizontal Component
+        let alignH = "LEFT";
+        if (textAlign.includes("RIGHT")) {
             x = Math.round(w.x + w.width);
-            align = "TextAlign::TOP_RIGHT";
+            alignH = "RIGHT";
+        } else if (textAlign.endsWith("CENTER") || textAlign === "CENTER") {
+            // "TOP_CENTER", "BOTTOM_CENTER" or just "CENTER"
+            x = Math.round(w.x + w.width / 2);
+            alignH = "CENTER";
         }
 
+        // Vertical Component
+        let alignV = "TOP";
         if (textAlign.includes("BOTTOM")) {
             y = Math.round(w.y + w.height);
-            align = align.replace("TOP_", "BOTTOM_");
-        } else if (!textAlign.includes("TOP")) {
-            // V-Center
+            alignV = "BOTTOM";
+        } else if (textAlign.startsWith("CENTER") || textAlign === "CENTER") {
+            // "CENTER_LEFT", "CENTER_RIGHT" or just "CENTER"
             y = Math.round(w.y + w.height / 2);
-            align = align.replace("TOP_", "CENTER_");
+            alignV = "CENTER";
         }
 
-        if (align === "TextAlign::CENTER_CENTER") align = "TextAlign::CENTER";
+        // Construct ESPHome Enum
+        let esphomeAlign = `TextAlign::${alignV}_${alignH}`;
+        if (esphomeAlign === "TextAlign::CENTER_CENTER") esphomeAlign = "TextAlign::CENTER";
 
         // Apply word-wrap based on widget width
         const wrappedLines = wordWrap(text, w.width || 200, fontSize, fontFamily);
@@ -253,7 +284,7 @@ export default {
         let currentY = y;
         for (const line of wrappedLines) {
             const escapedLine = line.replace(/"/g, '\\"').replace(/%/g, '%%');
-            lines.push(`        it.printf(${x}, ${currentY}, id(${fontId}), ${color}, ${align}, "${escapedLine}");`);
+            lines.push(`        it.printf(${x}, ${currentY}, id(${fontId}), ${color}, ${esphomeAlign}, "${escapedLine}");`);
             currentY += lineHeight;
         }
 

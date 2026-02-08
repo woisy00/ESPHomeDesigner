@@ -22,13 +22,16 @@ const render = (el, widget, { getColorStyle }) => {
     el.style.display = "flex";
 
     const align = props.text_align || "CENTER";
+
+    // Horizontal (Justify Content in Flex Row default)
     if (align.includes("LEFT")) el.style.justifyContent = "flex-start";
     else if (align.includes("RIGHT")) el.style.justifyContent = "flex-end";
-    else el.style.justifyContent = "center";
+    else el.style.justifyContent = "center"; // CENTER, TOP_CENTER, BOTTOM_CENTER
 
+    // Vertical (Align Items in Flex Row default)
     if (align.includes("TOP")) el.style.alignItems = "flex-start";
     else if (align.includes("BOTTOM")) el.style.alignItems = "flex-end";
-    else el.style.alignItems = "center";
+    else el.style.alignItems = "center"; // CENTER, CENTER_LEFT, CENTER_RIGHT
 
     el.style.fontFamily = props.font_family === "Custom..." ? (props.custom_font_family || "sans-serif") : (props.font_family || "sans-serif");
     if (props.italic) el.style.fontStyle = "italic";
@@ -52,13 +55,17 @@ const exportLVGL = (w, { common, convertColor, convertAlign, getLVGLFont, format
         }
     }
 
-    const alignMap = {
-        "CENTER": "CENTER",
-        "LEFT": "LEFT",
-        "RIGHT": "RIGHT",
-        "TOP": "CENTER",
-        "BOTTOM": "CENTER"
-    };
+    // Fix #268: Robust alignment mapping for LVGL
+    let textAlign = "CENTER";
+    const rawAlign = p.text_align || "CENTER";
+
+    if (rawAlign.includes("LEFT")) {
+        textAlign = "LEFT";
+    } else if (rawAlign.includes("RIGHT")) {
+        textAlign = "RIGHT";
+    } else {
+        textAlign = "CENTER";
+    }
 
     return {
         label: {
@@ -66,7 +73,7 @@ const exportLVGL = (w, { common, convertColor, convertAlign, getLVGLFont, format
             text: labelText,
             text_font: getLVGLFont(p.font_family, p.font_size, p.font_weight, p.italic),
             text_color: convertColor(p.color || p.text_color),
-            text_align: alignMap[p.text_align] || "CENTER",
+            text_align: textAlign,
             bg_color: p.bg_color === "transparent" ? undefined : convertColor(p.bg_color),
             opa: formatOpacity(p.opa)
         }
