@@ -1,4 +1,52 @@
-## v1.0.0 RC2 - Navigation & Refinement Update
+## v1.0.0 RC3 - Dynamic Sensor Bar & Hardware Clarity
+**Release Date:** February 8, 2026
+
+### 🔋 Dynamic Sensor Bar Enhancements
+- **Local Sensor Support**: Added "Local" toggles for all Sensor Bar components (WiFi, Temp, Humidity, Battery). This allows using on-device ESPHome sensors instead of Home Assistant entities for a more robust "offline" status display.
+- **Live Preview Parity**: The designer's live preview of the Sensor Bar now correctly reflects the actual state of your Home Assistant entities.
+
+### 🎭 Visual Depth & Precision (Drop Shadows)
+- **Shape-Accurate Shadows**: The "Create Drop Shadow" feature now dynamically detects the widget geometry. It perfectly matches **Circles**, **Rounded Rectangles** (respecting your radius), and **Rectangles** for pixel-perfect depth.
+- **Intelligent Infill & Masking**: Creating a shadow now automatically applies a solid background fill (White in light mode, Black in dark mode) to the original widget. This ensures the shadow is correctly masked behind the widget without "bleeding through" transparent areas.
+- **Preserved Content Colors**: For text and sensor widgets, the new background logic **preserves your chosen text color** while providing the necessary opaque fill for the shadow effect.
+- **Designer Preview Parity**: Updated rendering logic for Text, Sensor Text, DateTime, and Shape widgets to ensure background fills are visible in the designer's preview, matching the on-device look.
+- **Multi-Select & Batch Creation**: You can now create shadows for multiple selected widgets simultaneously via the new **"Operations"** section in the properties panel.
+
+### � Seeedstudio SenseCAP Indicator Support
+- **Full Model Support**: Added native hardware recipes for SenseCAP Indicator D1, D1S, D1L, and D1Pro models.
+- **RGB Display Optimization**: Implemented smart screen clearing using `page_changed` detection. This provides a full clean refresh on page transitions (no black artifacts) while maintaining high-speed updates for sensor data to keep touch input responsive.
+- **Home Assistant Control**: Added built-in Home Assistant buttons for remote page navigation and display refresh, achieving full feature parity with the reTerminal.
+- **Reliable 480x480 Rendering**: Fixed graph widget trace colors and auto-scaling logic specifically for high-resolution RGB displays.
+
+### �📦 Hardware Profile Clarification
+- **Clearer Terminology**: Renamed "Local Profiles" to **"User-Imported / Custom"** to avoid confusion with files shipped with the editor.
+- **Bundled vs User**: Files in the `hardware/` folder are now correctly grouped as "Built-in" (Bundled) profiles, even if they aren't in the explicitly "verified" list.
+- **Import/User Suffixes**: User-added profiles now display an **"(Imported)"** suffix for better visibility.
+
+### 🧩 UI Terminology Unification
+- **Project → Layout**: Standardized all user-facing references from **"Project"** to **"Layout"** to resolve confusion (#272).
+- **Consistently Labeled Buttons**: Renamed "Save Project" and "Import Project" to **"Save Layout"** and **"Import Layout"**.
+- **Sidebar Synchronicity**: The sidebar now correctly identifies the active configuration as a "LAYOUT".
+
+### 🖱️ Multi-Select Empowerment
+- **Multi-Select Property Editing**: You can now edit common properties (X, Y, Width, Height, Colors, Borders, Fonts) for multiple widgets simultaneously. 
+- **Mixed Value Detection**: The sidebar now intelligently detects if selected widgets have different values for a property, displaying a "Mixed" state placeholder.
+- **Filtered YAML Snippets**: Selecting multiple widgets on the canvas now isolates their YAML in the code panel, hiding all unselected distractions and automatically selecting the text for instant copying.
+- **Safety Guards**: Layout updates are automatically disabled when viewing partial snippets to prevent accidental project overwrites.
+- **Resize Snapping & Alignment Guides**: Widgets now snap to the grid and other widgets during resize, with real-time alignment guides for pixel-perfect layouts.
+- **Natural Page Numbering**: New pages now automatically receive the next unique number (e.g., Page 4) even if intermediate pages (e.g., Page 2) were deleted, preventing duplicate names (#270).
+
+### 🛠️ Widget & YAML Refinement
+- **Graph Y-Axis Overrides**: Added "Min (Override)" and "Max (Override)" inputs that remain visible when Auto-scale is enabled. This allows forcing fixed bounds for Y-axis labels while maintaining auto-scale logic.
+- **Intelligent Battery Defaults**: Standalone battery widgets now automatically default to `sensor.battery_level` when "Local" is unchecked, ensuring a smoother external sensor setup.
+- **Enhanced Sensor Bar Resolution**: The battery icon in the Sensor Bar now uses 10% increments (matching standalone widgets) for much more granular level updates.
+- **In-YAML Documentation**: Auto-scaled graphs now include a helpful comment in the generated YAML explaining how to enable Y-axis labels via overrides.
+
+### 🐛 Bug Fixes
+- **Image Resize Handles**: Fixed an issue where resize handles were invisible on both `Image` and `LVGL Image` widgets due to `overflow: hidden` clipping.
+
+---
+
 **Release Date:** February 6, 2026
 
 ### 🚀 Improved Navigation & Zoom
