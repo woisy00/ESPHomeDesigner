@@ -431,7 +431,7 @@ export class PropertiesPanel {
         }
 
         // --- Operations ---
-        this.createSection("Operations", false);
+        this.createSection("Operations", true);
 
         const shadowBtn = document.createElement("button");
         shadowBtn.className = "btn btn-secondary btn-full btn-xs";
