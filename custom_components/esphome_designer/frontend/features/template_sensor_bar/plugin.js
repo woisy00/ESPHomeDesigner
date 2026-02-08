@@ -88,11 +88,28 @@ const render = (el, widget, { getColorStyle }) => {
     }
 
     if (props.show_battery) {
-        const state = getEntityState([props.bat_entity, 'battery_level', 'sensor.battery_level']);
+        const isLocal = !!props.bat_is_local;
+        const state = getEntityState(isLocal ? ['battery_level'] : [props.bat_entity, 'battery_level', 'sensor.battery_level']);
+        const batteryLevel = state !== null ? parseFloat(state) : 85;
+
+        // Dynamic Battery Icon Logic
+        let batIcon = 'F0079'; // battery (full)
+        if (batteryLevel >= 95) batIcon = "F0079";
+        else if (batteryLevel >= 85) batIcon = "F0082"; // battery-90
+        else if (batteryLevel >= 75) batIcon = "F0081"; // battery-80
+        else if (batteryLevel >= 65) batIcon = "F0080"; // battery-70
+        else if (batteryLevel >= 55) batIcon = "F007F"; // battery-60
+        else if (batteryLevel >= 45) batIcon = "F007E"; // battery-50
+        else if (batteryLevel >= 35) batIcon = "F007D"; // battery-40
+        else if (batteryLevel >= 25) batIcon = "F007C"; // battery-30
+        else if (batteryLevel >= 15) batIcon = "F007B"; // battery-20
+        else if (batteryLevel >= 5) batIcon = "F007A";  // battery-10
+        else batIcon = "F0083";                      // battery-alert
+
         sensors.push({
             type: 'bat',
-            icon: 'F0079',
-            val: state !== null ? Math.round(state) + '%' : '85%'
+            icon: batIcon,
+            val: Math.round(batteryLevel) + '%'
         });
     }
 
@@ -151,10 +168,10 @@ const exportDoc = (w, context) => {
     const borderColor = getColorConst(ensureHex(p.border_color || "white"));
 
     // Entity IDs
-    const wifiId = (p.wifi_entity || "wifi_signal_dbm").replace(/[^a-zA-Z0-9_]/g, "_");
-    const batId = (p.bat_entity || (profile.pins?.batteryAdc ? "battery_level" : "")).replace(/[^a-zA-Z0-9_]/g, "_");
-    const humId = (p.hum_entity || (profile.features?.sht4x ? "sht4x_humidity" : ((profile.features?.sht3x || profile.features?.sht3xd) ? "sht3x_humidity" : (profile.features?.shtc3 ? "shtc3_humidity" : "")))).replace(/[^a-zA-Z0-9_]/g, "_");
-    const tempId = (p.temp_entity || (profile.features?.sht4x ? "sht4x_temperature" : ((profile.features?.sht3x || profile.features?.sht3xd) ? "sht3x_temperature" : (profile.features?.shtc3 ? "shtc3_temperature" : "")))).replace(/[^a-zA-Z0-9_]/g, "_");
+    const wifiId = ((p.wifi_is_local ? "wifi_signal_dbm" : p.wifi_entity) || "wifi_signal_dbm").replace(/[^a-zA-Z0-9_]/g, "_");
+    const batId = ((p.bat_is_local ? "battery_level" : p.bat_entity) || (profile.pins?.batteryAdc ? "battery_level" : "")).replace(/[^a-zA-Z0-9_]/g, "_");
+    const humId = ((p.hum_is_local ? (profile.features?.sht4x ? "sht4x_humidity" : ((profile.features?.sht3x || profile.features?.sht3xd) ? "sht3x_humidity" : (profile.features?.shtc3 ? "shtc3_humidity" : ""))) : p.hum_entity) || (profile.features?.sht4x ? "sht4x_humidity" : ((profile.features?.sht3x || profile.features?.sht3xd) ? "sht3x_humidity" : (profile.features?.shtc3 ? "shtc3_humidity" : "")))).replace(/[^a-zA-Z0-9_]/g, "_");
+    const tempId = ((p.temp_is_local ? (profile.features?.sht4x ? "sht4x_temperature" : ((profile.features?.sht3x || profile.features?.sht3xd) ? "sht3x_temperature" : (profile.features?.shtc3 ? "shtc3_temperature" : ""))) : p.temp_entity) || (profile.features?.sht4x ? "sht4x_temperature" : ((profile.features?.sht3x || profile.features?.sht3xd) ? "sht3x_temperature" : (profile.features?.shtc3 ? "shtc3_temperature" : "")))).replace(/[^a-zA-Z0-9_]/g, "_");
 
     const iconFontRef = addFont("Material Design Icons", 400, iconSize);
     const textFontRef = addFont("Roboto", 400, fontSize);
@@ -383,7 +400,7 @@ const collectRequirements = (widget, context) => {
     if (p.show_wifi !== false) ["F092B", "F091F", "F0922", "F0925", "F0928"].forEach(c => trackIcon(c, iconSize));
     if (p.show_temperature !== false) ["F050F"].forEach(c => trackIcon(c, iconSize));
     if (p.show_humidity !== false) ["F058E"].forEach(c => trackIcon(c, iconSize));
-    if (p.show_battery !== false) ["F0082", "F0079", "F007E", "F007B", "F0083"].forEach(c => trackIcon(c, iconSize));
+    if (p.show_battery !== false) ["F0079", "F0082", "F0081", "F0080", "F007F", "F007E", "F007D", "F007C", "F007B", "F007A", "F0083"].forEach(c => trackIcon(c, iconSize));
 };
 
 export default {
@@ -489,13 +506,23 @@ export default {
         }
 
         if (showBat) {
-            const batId = (p.bat_entity || "battery_level").replace(/[^a-zA-Z0-9_]/g, "_");
+            const batId = ((p.bat_is_local ? "battery_level" : p.bat_entity) || "battery_level").replace(/[^a-zA-Z0-9_]/g, "_");
             let batIconL = '!lambda |-\n';
-            batIconL += `              float lvl = id(${batId}).state;\n`;
-            batIconL += '              if (lvl >= 90) return "\\U000F0079";\n';
-            batIconL += '              else if (lvl >= 50) return "\\U000F007E";\n';
-            batIconL += '              else if (lvl >= 20) return "\\U000F007B";\n';
-            batIconL += '              else return "\\U000F0083";';
+            batIconL += `              if (id(${batId}).has_state()) {\n`;
+            batIconL += `                float lvl = id(${batId}).state;\n`;
+            batIconL += '                if (lvl >= 95) return "\\U000F0079";\n';
+            batIconL += '                else if (lvl >= 85) return "\\U000F0082";\n';
+            batIconL += '                else if (lvl >= 75) return "\\U000F0081";\n';
+            batIconL += '                else if (lvl >= 65) return "\\U000F0080";\n';
+            batIconL += '                else if (lvl >= 55) return "\\U000F007F";\n';
+            batIconL += '                else if (lvl >= 45) return "\\U000F007E";\n';
+            batIconL += '                else if (lvl >= 35) return "\\U000F007D";\n';
+            batIconL += '                else if (lvl >= 25) return "\\U000F007C";\n';
+            batIconL += '                else if (lvl >= 15) return "\\U000F007B";\n';
+            batIconL += '                else if (lvl >= 5) return "\\U000F007A";\n';
+            batIconL += '                else return "\\U000F0083";\n';
+            batIconL += '              }\n';
+            batIconL += '              return "\\U000F0082";';
 
             widgets.push({
                 obj: {

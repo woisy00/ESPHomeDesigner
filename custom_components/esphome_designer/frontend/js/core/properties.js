@@ -1532,11 +1532,23 @@ export class PropertiesPanel {
             this.endSection();
 
             this.createSection("Sensor Data Sources", false);
-            this.addLabeledInput("WiFi Entity", "text", props.wifi_entity || "", (v) => updateProp("wifi_entity", v));
-            this.addLabeledInput("Temp Entity", "text", props.temp_entity || "", (v) => updateProp("temp_entity", v));
+            this.addCompactPropertyRow(() => {
+                this.addLabeledInput("WiFi Entity", "text", props.wifi_entity || "", (v) => updateProp("wifi_entity", v));
+                this.addCheckbox("Local", !!props.wifi_is_local, (v) => updateProp("wifi_is_local", v));
+            });
+            this.addCompactPropertyRow(() => {
+                this.addLabeledInput("Temp Entity", "text", props.temp_entity || "", (v) => updateProp("temp_entity", v));
+                this.addCheckbox("Local", !!props.temp_is_local, (v) => updateProp("temp_is_local", v));
+            });
             this.addSelect("Temperature Unit", props.temp_unit || "°C", ["°C", "°F"], (v) => updateProp("temp_unit", v));
-            this.addLabeledInput("Hum Entity", "text", props.hum_entity || "", (v) => updateProp("hum_entity", v));
-            this.addLabeledInput("Battery Entity", "text", props.bat_entity || "", (v) => updateProp("bat_entity", v));
+            this.addCompactPropertyRow(() => {
+                this.addLabeledInput("Hum Entity", "text", props.hum_entity || "", (v) => updateProp("hum_entity", v));
+                this.addCheckbox("Local", !!props.hum_is_local, (v) => updateProp("hum_is_local", v));
+            });
+            this.addCompactPropertyRow(() => {
+                this.addLabeledInput("Battery Entity", "text", props.bat_entity || "", (v) => updateProp("bat_entity", v));
+                this.addCheckbox("Local", !!props.bat_is_local, (v) => updateProp("bat_is_local", v));
+            });
             this.endSection();
 
             this.createSection("Appearance", true);
