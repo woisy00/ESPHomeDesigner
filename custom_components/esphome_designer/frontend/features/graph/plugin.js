@@ -405,6 +405,8 @@ const exportDoc = (w, context) => {
                 const fmt = yRange >= 10 ? "%.0f" : "%.1f";
                 lines.push(`        it.printf(${w.x} - 4, ${w.y} + ${yOffset} - 6, id(${fontId}), ${color}, TextAlign::TOP_RIGHT, "${fmt}", (float)${val});`);
             }
+        } else {
+            lines.push(`        // Y-axis labels are disabled for auto-scaled graphs. Set Min/Max overrides to enable them.`);
         }
 
         let durationSec = 3600;

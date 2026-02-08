@@ -83,10 +83,12 @@ const exportDoc = (w, context) => {
     } else {
         // Ensure sensor. prefix if missing (matching onExportNumericSensors logic)
         let normalizedEntityId = entityId;
-        if (normalizedEntityId && !normalizedEntityId.includes(".") && normalizedEntityId !== "battery_level") {
+        if (!normalizedEntityId) {
+            normalizedEntityId = "sensor.battery_level";
+        } else if (!normalizedEntityId.includes(".")) {
             normalizedEntityId = `sensor.${normalizedEntityId}`;
         }
-        sensorId = normalizedEntityId ? normalizedEntityId.replace(/[^a-zA-Z0-9_]/g, "_") : "battery_level";
+        sensorId = normalizedEntityId.replace(/[^a-zA-Z0-9_]/g, "_");
     }
 
     lines.push(`        // widget:battery_icon id:${w.id} type:battery_icon x:${w.x} y:${w.y} w:${w.width} h:${w.height} entity:${entityId || "battery_level"} size:${size} font_size:${fontSize} color:${colorProp} local:${!!p.is_local_sensor} ${getCondProps(w)}`);
@@ -332,11 +334,9 @@ export default {
             let eid = (w.entity_id || "").trim();
             if (p.is_local_sensor) {
                 eid = "battery_level";
-            } else if (eid) {
-                // Ensure sensor. prefix if missing
-                if (!eid.includes(".")) {
-                    eid = `sensor.${eid}`;
-                }
+            } else {
+                if (!eid) eid = "sensor.battery_level";
+                else if (!eid.includes(".")) eid = `sensor.${eid}`;
             }
 
             if (!eid) continue;

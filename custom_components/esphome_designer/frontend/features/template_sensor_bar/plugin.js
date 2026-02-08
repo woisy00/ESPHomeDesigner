@@ -300,9 +300,16 @@ const exportDoc = (w, context) => {
             let hasRealBat = batId && idExists(batId);
             if (hasRealBat) {
                 lines.push(`            float lvl = id(${batId}).state;`);
-                lines.push(`            if (lvl >= 90) bat_icon = "\\U000F0079";`);
-                lines.push(`            else if (lvl >= 50) bat_icon = "\\U000F007E";`);
-                lines.push(`            else if (lvl >= 20) bat_icon = "\\U000F007B";`);
+                lines.push(`            if (lvl >= 95) bat_icon = "\\U000F0079";`);
+                lines.push(`            else if (lvl >= 85) bat_icon = "\\U000F0082";`);
+                lines.push(`            else if (lvl >= 75) bat_icon = "\\U000F0081";`);
+                lines.push(`            else if (lvl >= 65) bat_icon = "\\U000F0080";`);
+                lines.push(`            else if (lvl >= 55) bat_icon = "\\U000F007F";`);
+                lines.push(`            else if (lvl >= 45) bat_icon = "\\U000F007E";`);
+                lines.push(`            else if (lvl >= 35) bat_icon = "\\U000F007D";`);
+                lines.push(`            else if (lvl >= 25) bat_icon = "\\U000F007C";`);
+                lines.push(`            else if (lvl >= 15) bat_icon = "\\U000F007B";`);
+                lines.push(`            else if (lvl >= 5) bat_icon = "\\U000F007A";`);
                 lines.push(`            else bat_icon = "\\U000F0083";`);
                 lines.push(`            it.printf(${Math.round(currentX)} - 4, ${Math.round(centerY)}, id(${iconFontRef}), ${effectiveColor}, TextAlign::CENTER_RIGHT, "%s", bat_icon);`);
                 lines.push(`            if (id(${batId}).has_state()) it.printf(${Math.round(currentX)} + 4, ${Math.round(centerY)}, id(${textFontRef}), ${effectiveColor}, TextAlign::CENTER_LEFT, "%.0f%%", id(${batId}).state);`);
