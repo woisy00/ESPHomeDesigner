@@ -127,10 +127,22 @@ export class ProjectStore {
      */
     addPage(atIndex = null) {
         const newIdNum = this.state.pages.length;
+
+        // Find next available Page number to avoid duplicates (e.g. Page 1, Page 3 -> Page 4)
+        let maxPageNum = 0;
+        this.state.pages.forEach(p => {
+            const match = p.name.match(/^Page (\d+)$/);
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (num > maxPageNum) maxPageNum = num;
+            }
+        });
+        const newPageNum = maxPageNum + 1;
+
         // Generate a truly unique ID if possible, but keeping consistency with current pattern
         const newPage = {
             id: `page_${Date.now()}_${newIdNum}`,
-            name: `Page ${newIdNum + 1}`,
+            name: `Page ${newPageNum}`,
             widgets: []
         };
 

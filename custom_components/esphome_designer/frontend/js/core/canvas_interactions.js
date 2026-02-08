@@ -680,6 +680,7 @@ export function onMouseMove(ev, canvasInstance) {
         } else if (canvasInstance.dragState.mode === "resize") {
             const widget = AppState.getWidgetById(canvasInstance.dragState.id);
             if (!widget) return;
+            clearSnapGuides();
 
             const ds = canvasInstance.dragState;
             const handle = ds.handle;
