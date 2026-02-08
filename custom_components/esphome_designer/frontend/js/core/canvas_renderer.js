@@ -598,7 +598,8 @@ function addResizeHandles(el) {
 
 export function renderContextToolbar(canvasInstance) {
     const selectedIds = AppState.selectedWidgetIds;
-    const artboard = canvasInstance.canvas.querySelector(`.artboard[data-index="${AppState.currentPageIndex}"]`);
+    const wrapper = canvasInstance.canvas.querySelector(`.artboard-wrapper[data-index="${AppState.currentPageIndex}"]`);
+    const artboard = wrapper ? wrapper.querySelector(".artboard") : null;
     let toolbar = canvasInstance.canvas.querySelector(".context-toolbar");
 
     // Hide if nothing selected or during active drag/lasso
@@ -608,7 +609,7 @@ export function renderContextToolbar(canvasInstance) {
     }
 
     const widgets = AppState.getSelectedWidgets();
-    if (widgets.length === 0) {
+    if (widgets.length === 0 || !wrapper || !artboard) {
         if (toolbar) toolbar.remove();
         return;
     }
@@ -623,15 +624,17 @@ export function renderContextToolbar(canvasInstance) {
     });
 
     const targetLeft = minX;
-    const targetTop = minY - 45;
+    // Position relative to artboard content, but we'll apply it to the wrapper scale
+    // We add artboard.offsetTop to account for the header + gap
+    const targetTop = artboard.offsetTop + minY - 45;
 
     // Create or move toolbar
     if (!toolbar) {
         toolbar = document.createElement("div");
         toolbar.className = "context-toolbar";
-        artboard.appendChild(toolbar);
-    } else if (toolbar.parentElement !== artboard) {
-        artboard.appendChild(toolbar);
+        wrapper.appendChild(toolbar);
+    } else if (toolbar.parentElement !== wrapper) {
+        wrapper.appendChild(toolbar);
     }
 
     // Update position
