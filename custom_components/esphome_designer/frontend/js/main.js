@@ -184,9 +184,9 @@ export class App {
             loadLayoutBtn.addEventListener('change', handleFileSelect);
         }
 
-        const importProjectBtn = document.getElementById('importProjectBtn');
-        if (importProjectBtn && loadLayoutBtn) {
-            importProjectBtn.addEventListener('click', () => {
+        const importLayoutBtn = document.getElementById('importLayoutBtn');
+        if (importLayoutBtn && loadLayoutBtn) {
+            importLayoutBtn.addEventListener('click', () => {
                 loadLayoutBtn.click();
             });
         }
