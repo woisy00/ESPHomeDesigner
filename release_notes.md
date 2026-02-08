@@ -43,12 +43,11 @@
 - **In-YAML Documentation**: Auto-scaled graphs now include a helpful comment in the generated YAML explaining how to enable Y-axis labels via overrides.
 
 ### 🐛 Bug Fixes
-- **Shadow Bleed-through Fix**: Implemented automatic background "masking" for widgets with drop shadows. This ensures that text and icons remain legible on physical devices by preventing shadows from showing through transparent areas.
-- **Enhanced Widget Rendering**: Added Direct Rendering background fill support to `Text`, `Sensor Text`, `DateTime`, `Icon`, `Weather`, `WiFi`, `Battery`, `Progress Bar`, `Graph`, and `Sensor Bar` widgets.
 - **Image Resize Handles**: Fixed an issue where resize handles were invisible on both `Image` and `LVGL Image` widgets due to `overflow: hidden` clipping.
 
 ---
 
+## v1.0.0 RC2 - Navigation & Refinement Update
 **Release Date:** February 6, 2026
 
 ### 🚀 Improved Navigation & Zoom
