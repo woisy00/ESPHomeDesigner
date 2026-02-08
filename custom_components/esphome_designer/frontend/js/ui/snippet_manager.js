@@ -320,7 +320,9 @@ export class SnippetManager {
                     const importBtn = document.getElementById('updateLayoutBtn');
                     if (importBtn) importBtn.style.display = isMultiSelect ? 'none' : 'inline-block';
 
-                    const payload = window.AppState ? window.AppState.getPagesPayload() : { pages: [] };
+                    // IMPORTANT: Deep clone to prevent mutating AppState when filtering for multi-select
+                    const rawPayload = window.AppState ? window.AppState.getPagesPayload() : { pages: [] };
+                    const payload = JSON.parse(JSON.stringify(rawPayload));
 
                     // FILTER PAYLOAD FOR MULTI-SELECT:
                     // If multiple widgets are selected, we ONLY want to generate YAML for them.
