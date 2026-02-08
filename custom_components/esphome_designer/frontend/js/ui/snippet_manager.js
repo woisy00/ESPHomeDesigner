@@ -248,6 +248,9 @@ export class SnippetManager {
                 }
 
                 try {
+                    const selectedIds = window.AppState ? window.AppState.selectedWidgetIds : [];
+                    const isMultiSelect = selectedIds.length > 1;
+
                     const mode = this.adapter && this.adapter.constructor.name;
                     const isOEPL = mode === 'OEPLAdapter';
                     const isODP = mode === 'OpenDisplayAdapter';
@@ -257,13 +260,33 @@ export class SnippetManager {
 
                     const odpNotice = document.getElementById('odpNotice');
                     if (odpNotice) {
-                        odpNotice.classList.toggle('hidden', !isODP);
-                        if (isODP) {
+                        odpNotice.classList.toggle('hidden', !isODP || isMultiSelect);
+                        if (isODP && !isMultiSelect) {
                             const noticeText = odpNotice.querySelector('div');
                             if (noticeText) {
                                 noticeText.innerHTML = `<strong>OpenDisplay YAML (ODP)</strong> - Copy this to Home Assistant → Developer Tools → Services → <code>opendisplay.drawcustom</code>`;
                             }
                         }
+                    }
+
+                    // Snippet Selection Notice
+                    let selectionNotice = document.getElementById('selectionNotice');
+                    if (isMultiSelect) {
+                        if (!selectionNotice) {
+                            selectionNotice = document.createElement('div');
+                            selectionNotice.id = 'selectionNotice';
+                            selectionNotice.className = 'info-notice';
+                            selectionNotice.style.background = 'var(--bg-subtle)';
+                            selectionNotice.style.borderLeft = '4px solid var(--accent)';
+                            selectionNotice.style.padding = '8px 12px';
+                            selectionNotice.style.marginBottom = '8px';
+                            selectionNotice.style.fontSize = '0.85rem';
+                            selectionNotice.innerHTML = `<strong>Selection Mode</strong>: Showing YAML only for selected items. <em>Update Layout disabled.</em>`;
+                            odpNotice?.parentNode.insertBefore(selectionNotice, odpNotice);
+                        }
+                        selectionNotice.classList.remove('hidden');
+                    } else if (selectionNotice) {
+                        selectionNotice.classList.add('hidden');
                     }
 
                     const titleEl = document.querySelector('.code-panel-title');
@@ -276,6 +299,10 @@ export class SnippetManager {
                         let titleText = ' ESPHome YAML';
                         if (isOEPL) titleText = ' OpenEpaperLink JSON';
                         if (isODP) titleText = ' OpenDisplay YAML (ODP)';
+
+                        if (isMultiSelect) {
+                            titleText = ` Selection Snippet (${selectedIds.length} widgets)`;
+                        }
 
                         titleEl.appendChild(document.createTextNode(titleText));
                     }
@@ -291,9 +318,22 @@ export class SnippetManager {
                     if (copyLambdaBtn) copyLambdaBtn.style.display = (isOEPL || isODP) ? 'none' : 'inline-block';
 
                     const importBtn = document.getElementById('updateLayoutBtn');
-                    if (importBtn) importBtn.style.display = 'inline-block';
+                    if (importBtn) importBtn.style.display = isMultiSelect ? 'none' : 'inline-block';
 
                     const payload = window.AppState ? window.AppState.getPagesPayload() : { pages: [] };
+
+                    // FILTER PAYLOAD FOR MULTI-SELECT:
+                    // If multiple widgets are selected, we ONLY want to generate YAML for them.
+                    if (isMultiSelect) {
+                        payload.isSelectionSnippet = true;
+                        payload.pages.forEach(p => {
+                            if (p.widgets) {
+                                p.widgets = p.widgets.filter(w => selectedIds.includes(w.id));
+                            }
+                        });
+                        // Filter out empty pages
+                        payload.pages = payload.pages.filter(p => (p.widgets && p.widgets.length > 0));
+                    }
 
                     // FORCE SYNC: Ensure the generator uses the latest UI selection
                     // This fixes an issue where AppState might be momentarily stale

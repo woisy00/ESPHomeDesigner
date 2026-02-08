@@ -48,10 +48,18 @@ export function highlightWidgetInSnippet(widgetIds) {
         return;
     }
 
-    // Only highlight the first (primary) widget to avoid spanning selection
-    // across non-adjacent widgets which would include unrelated code in between
-    if (ids.length > 1) {
-        ids = [ids[0]];
+    // SPECIAL: If in Selection Snippet mode, select EVERYTHING
+    // Selection snippet mode is active when the Title contains 'Selection Snippet'
+    const titleEl = document.querySelector('.code-panel-title');
+    const isSnippetMode = titleEl && titleEl.textContent.includes('Selection Snippet');
+
+    if (isSnippetMode) {
+        try {
+            box.setSelectionRange(0, yaml.length);
+            box.focus();
+            lastHighlightRange = { start: 0, end: yaml.length };
+        } catch (e) { }
+        return;
     }
 
     let minStart = -1;

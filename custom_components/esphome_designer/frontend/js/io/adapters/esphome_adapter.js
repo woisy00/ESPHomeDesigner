@@ -132,12 +132,12 @@ export class ESPHomeAdapter extends BaseAdapter {
 
         const lines = [];
 
-
-
         // 1. Instructions & Setup Comments
-        lines.push(...this.yaml.generateInstructionHeader(profile, layout));
-        lines.push(...this.yaml.generateSystemSections(profile, layout));
-        lines.push("");
+        if (!layout.isSelectionSnippet) {
+            lines.push(...this.yaml.generateInstructionHeader(profile, layout));
+            lines.push(...this.yaml.generateSystemSections(profile, layout));
+            lines.push("");
+        }
 
         // 2. Preparation
         const displayId = profile.features?.lcd ? "my_display" : "epaper_display";
@@ -216,12 +216,14 @@ export class ESPHomeAdapter extends BaseAdapter {
 
             if (!profile.isPackageBased) {
                 lines.length = 0; // Reset lines to handle the header/system sections after hook collection
-                lines.push(...this.yaml.generateInstructionHeader(profile, layout));
-                lines.push(...this.yaml.generateSystemSections(profile, layout));
-                lines.push("");
+                if (!layout.isSelectionSnippet) {
+                    lines.push(...this.yaml.generateInstructionHeader(profile, layout));
+                    lines.push(...this.yaml.generateSystemSections(profile, layout));
+                    lines.push("");
+                }
             }
 
-            if (globalLines.length > 0) {
+            if (globalLines.length > 0 && !layout.isSelectionSnippet) {
                 lines.push("globals:");
                 lines.push(...globalLines.map(l => "  " + l));
             }
@@ -233,7 +235,7 @@ export class ESPHomeAdapter extends BaseAdapter {
             }
 
             // Hardware Sections (I2C, SPI, etc.)
-            if (!profile.isPackageBased) {
+            if (!profile.isPackageBased && !layout.isSelectionSnippet) {
                 // HTTP Request first
                 lines.push("http_request:", "  verify_ssl: false", "  timeout: 20s", "  buffer_size_rx: 4096");
 
@@ -256,7 +258,7 @@ export class ESPHomeAdapter extends BaseAdapter {
                     lines.push("time:", "  - platform: homeassistant", "    id: ha_time");
                     seenSensorIds.add("ha_time");
                 }
-            } else {
+            } else if (!layout.isSelectionSnippet) {
                 // For package-based, we STILL want the time block if not present
                 const hasTime = lines.some(l => String(l).split('\n').some(subL => subL.trim() === "time:"));
                 if (!hasTime) {
