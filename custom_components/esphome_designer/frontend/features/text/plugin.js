@@ -67,6 +67,22 @@ const render = (el, widget, { getColorStyle }) => {
     const maxWidth = widget.width || 200;
     const wrappedLines = shouldParseColors ? wordWrap(text, maxWidth, fontSize, fontFamily) : text.split("\n");
 
+    // Apply Border
+    const borderWidth = props.border_width !== undefined ? props.border_width : 0;
+    if (borderWidth > 0) {
+        // Resolve theme colors manually for the border if needed
+        const borderColorProp = props.border_color || "black";
+        // Simple heuristic for theme_auto in preview
+        let resolvedBorderColor = borderColorProp;
+        if (borderColorProp === "theme_auto") {
+            resolvedBorderColor = (window.AppState?.settings?.darkMode) ? "white" : "black";
+        }
+
+        body.style.border = `${borderWidth}px solid ${getColorStyle(resolvedBorderColor)}`;
+        body.style.borderRadius = `${props.border_radius || 0}px`;
+        body.style.boxSizing = "border-box"; // Include border in width/height
+    }
+
     if (shouldParseColors) {
         wrappedLines.forEach((line, i) => {
             if (i > 0) body.appendChild(document.createTextNode("\n"));
@@ -105,7 +121,11 @@ const exportLVGL = (w, { common, convertColor, convertAlign, getLVGLFont, format
             text_color: convertColor(p.color || p.text_color),
             text_align: textAlign,
             bg_color: p.bg_color === "transparent" ? undefined : convertColor(p.bg_color),
-            opa: formatOpacity(p.opa)
+            opa: formatOpacity(p.opa),
+            border_width: p.border_width || 0,
+            border_color: convertColor(p.border_color || "black"),
+            border_side: (p.border_width > 0) ? "full" : "none",
+            radius: p.border_radius || 0
         }
     };
 };
@@ -125,7 +145,10 @@ export default {
         bpp: 1,
         text_align: "TOP_LEFT",
         bg_color: "transparent",
-        opa: 255
+        opa: 255,
+        border_width: 0,
+        border_color: "black",
+        border_radius: 0
     },
     render,
     exportOpenDisplay: (w, { layout, page }) => {
@@ -291,6 +314,15 @@ export default {
         // Apply dithering for gray text on e-paper
         if (isGrayOnEpaper) {
             lines.push(`        apply_grey_dither_to_text(${w.x}, ${w.y}, ${w.width}, ${w.height});`);
+        }
+
+        // Draw Border if defined
+        const borderWidth = p.border_width || 0;
+        if (borderWidth > 0) {
+            const borderColor = getColorConst(p.border_color || "black");
+            for (let i = 0; i < borderWidth; i++) {
+                lines.push(`        it.rectangle(${w.x} + ${i}, ${w.y} + ${i}, ${w.width} - 2 * ${i}, ${w.height} - 2 * ${i}, ${borderColor});`);
+            }
         }
 
         if (cond) lines.push(`        }`);

@@ -40,6 +40,14 @@ const render = (el, widget, { getColorStyle }) => {
     el.style.whiteSpace = "pre-wrap";
     el.style.overflow = "hidden";
     el.style.opacity = (props.opa !== undefined ? props.opa : 255) / 255;
+
+    // Border
+    const borderWidth = props.border_width || 0;
+    if (borderWidth > 0) {
+        el.style.border = `${borderWidth}px solid ${getColorStyle(props.border_color || "black")}`;
+        el.style.borderRadius = `${props.border_radius || 0}px`;
+        el.style.boxSizing = "border-box";
+    }
 };
 
 const exportLVGL = (w, { common, convertColor, convertAlign, getLVGLFont, formatOpacity }) => {
@@ -75,7 +83,11 @@ const exportLVGL = (w, { common, convertColor, convertAlign, getLVGLFont, format
             text_color: convertColor(p.color || p.text_color),
             text_align: textAlign,
             bg_color: p.bg_color === "transparent" ? undefined : convertColor(p.bg_color),
-            opa: formatOpacity(p.opa)
+            opa: formatOpacity(p.opa),
+            border_width: p.border_width || 0,
+            border_color: convertColor(p.border_color || "black"),
+            border_side: (p.border_width > 0) ? "full" : "none",
+            radius: p.border_radius || 0
         }
     };
 };
@@ -94,6 +106,9 @@ export default {
         text_align: "CENTER",
         bg_color: "transparent",
         opa: 255,
+        border_width: 0,
+        border_color: "black",
+        border_radius: 0,
         entity_id: ""
     },
     render,

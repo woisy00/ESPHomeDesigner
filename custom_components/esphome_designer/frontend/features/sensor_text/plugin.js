@@ -261,6 +261,19 @@ const render = (el, widget, { getColorStyle }) => {
         applyAlign(props.value_align || props.text_align || "TOP_LEFT", body);
     }
 
+    // Apply Border
+    const borderWidth = props.border_width !== undefined ? props.border_width : 0;
+    if (borderWidth > 0) {
+        let resolvedBorderColor = props.border_color || "theme_auto";
+        if (resolvedBorderColor === "theme_auto") {
+            resolvedBorderColor = (window.AppState?.settings?.darkMode) ? "white" : "black";
+        }
+
+        body.style.border = `${borderWidth}px solid ${getColorStyle(resolvedBorderColor)}`;
+        body.style.borderRadius = `${props.border_radius || 0}px`;
+        body.style.boxSizing = "border-box";
+    }
+
     el.appendChild(body);
 };
 
@@ -280,7 +293,12 @@ export default {
         text_align: "TOP_LEFT",
         color: "theme_auto",
         font_family: "Roboto",
-        parse_colors: false
+        parse_colors: false,
+        bg_color: "transparent",
+        opa: 255,
+        border_width: 0,
+        border_color: "theme_auto",
+        border_radius: 0,
     },
 
     render,
@@ -568,7 +586,13 @@ export default {
             color: color,
             align: (p.text_align || "TOP_LEFT").toLowerCase().replace("top_", "").replace("bottom_", "").replace("_", ""),
             anchor: "lt",
-            parse_colors: !!p.parse_colors
+            parse_colors: !!p.parse_colors,
+            bg_color: p.bg_color || "transparent",
+            opa: p.opa || 255,
+            border_width: p.border_width || 0,
+            border_color: p.border_color || "theme_auto",
+            border_side: (p.border_width > 0) ? "full" : "none",
+            radius: p.border_radius || 0
         };
 
         // Add max_width for automatic text wrapping when widget has width
@@ -654,6 +678,15 @@ export default {
         const escapeFmt = (str) => (str || "").replace(/%/g, "%%");
 
         lines.push(`        // widget:sensor_text id:${w.id} type:sensor_text x:${w.x} y:${w.y} w:${w.width} h:${w.height} align:${textAlign} entity:"${entityId}" format:"${format}" ${getCondProps(w)}`);
+
+        // Draw Border if defined
+        const borderWidth = p.border_width || 0;
+        if (borderWidth > 0) {
+            const borderColor = getColorConst(p.border_color || "theme_auto");
+            for (let i = 0; i < borderWidth; i++) {
+                lines.push(`        it.rectangle(${w.x} + ${i}, ${w.y} + ${i}, ${w.width} - 2 * ${i}, ${w.height} - 2 * ${i}, ${borderColor});`);
+            }
+        }
 
         if (!entityId && !p.is_local_sensor) {
             lines.push(`        // Sensor ID missing for this widget`);

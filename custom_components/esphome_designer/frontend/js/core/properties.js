@@ -568,6 +568,13 @@ export class PropertiesPanel {
             this.addSelect("Align", props.text_align || "TOP_LEFT", alignOptions, (v) => updateProp("text_align", v));
             this.addCheckbox("Parse Color Tags", !!props.parse_colors, (v) => updateProp("parse_colors", v));
             this.addHint("Enable to use [color]text[/color] markup, also supports HA templates.");
+
+            this.createSection("Border Style", false);
+            this.addLabeledInput("Border Width", "number", props.border_width || 0, (v) => updateProp("border_width", parseInt(v, 10)));
+            this.addColorSelector("Border Color", props.border_color || "black", colors, (v) => updateProp("border_color", v));
+            this.addLabeledInput("Corner Radius", "number", props.border_radius || 0, (v) => updateProp("border_radius", parseInt(v, 10)));
+            this.endSection();
+
             this.endSection();
         }
         else if (type === "icon") {
@@ -611,6 +618,37 @@ export class PropertiesPanel {
 
             const alignOptions = ["TOP_LEFT", "TOP_CENTER", "TOP_RIGHT", "CENTER_LEFT", "CENTER", "CENTER_RIGHT", "BOTTOM_LEFT", "BOTTOM_CENTER", "BOTTOM_RIGHT"];
             this.addSelect("Align", props.text_align || "TOP_LEFT", alignOptions, (v) => updateProp("text_align", v));
+
+            this.createSection("Border Style", false);
+            this.addLabeledInput("Border Width", "number", props.border_width || 0, (v) => updateProp("border_width", parseInt(v, 10)));
+            this.addColorSelector("Border Color", props.border_color || "theme_auto", colors, (v) => updateProp("border_color", v));
+            this.addLabeledInput("Corner Radius", "number", props.border_radius || 0, (v) => updateProp("border_radius", parseInt(v, 10)));
+            this.endSection();
+
+            this.endSection();
+        }
+        else if (type === "lvgl_label") {
+            this.createSection("Content", true);
+            this.addLabeledInputWithPicker("Entity ID", "text", widget.entity_id || "", (v) => {
+                AppState.updateWidget(widget.id, { entity_id: v });
+            }, widget);
+            this.addLabeledInput("Text", "textarea", props.text || "", (v) => updateProp("text", v));
+            this.endSection();
+
+            this.createSection("Appearance", true);
+            this.addLabeledInput("Font Size", "number", props.font_size || 20, (v) => updateProp("font_size", parseInt(v, 10)));
+            this.addColorSelector("Color", props.color || "black", colors, (v) => updateProp("color", v));
+            this.addColorSelector("Background", props.bg_color || "transparent", colors, (v) => updateProp("bg_color", v));
+
+            const alignOptions = ["LEFT", "CENTER", "RIGHT"];
+            this.addSelect("Align", props.text_align || "CENTER", alignOptions, (v) => updateProp("text_align", v));
+
+            this.createSection("Border Style", false);
+            this.addLabeledInput("Border Width", "number", props.border_width || 0, (v) => updateProp("border_width", parseInt(v, 10)));
+            this.addColorSelector("Border Color", props.border_color || "black", colors, (v) => updateProp("border_color", v));
+            this.addLabeledInput("Corner Radius", "number", props.border_radius || 0, (v) => updateProp("border_radius", parseInt(v, 10)));
+            this.endSection();
+
             this.endSection();
         }
         else if (type === "qr_code") {
@@ -882,6 +920,13 @@ export class PropertiesPanel {
             this.addHint("1=no AA, 2=4 levels, 4=16 levels, 8=256 levels");
             this.addCheckbox("Parse Color Tags", !!props.parse_colors, (v) => updateProp("parse_colors", v));
             this.addHint("Enable to use [color]text[/color] markup, also supports HA templates.");
+
+            this.createSection("Border Style", false);
+            this.addLabeledInput("Border Width", "number", props.border_width || 0, (v) => updateProp("border_width", parseInt(v, 10)));
+            this.addColorSelector("Border Color", props.border_color || "black", colors, (v) => updateProp("border_color", v));
+            this.addLabeledInput("Corner Radius", "number", props.border_radius || 0, (v) => updateProp("border_radius", parseInt(v, 10)));
+            this.endSection();
+
             this.endSection();
         }
         else if (type === "sensor_text") {
@@ -969,6 +1014,13 @@ export class PropertiesPanel {
                 updateProp("label_align", v);
                 updateProp("value_align", v);
             });
+
+            this.createSection("Border Style", false);
+            this.addLabeledInput("Border Width", "number", props.border_width || 0, (v) => updateProp("border_width", parseInt(v, 10)));
+            this.addColorSelector("Border Color", props.border_color || "theme_auto", colors, (v) => updateProp("border_color", v));
+            this.addLabeledInput("Corner Radius", "number", props.border_radius || 0, (v) => updateProp("border_radius", parseInt(v, 10)));
+            this.endSection();
+
             this.endSection();
         }
         else if (type === "datetime") {
@@ -1012,6 +1064,34 @@ export class PropertiesPanel {
                 "BOTTOM_LEFT", "BOTTOM_CENTER", "BOTTOM_RIGHT"
             ];
             this.addSelect("Align", props.text_align || "CENTER", alignOptions, (v) => updateProp("text_align", v));
+            this.endSection();
+        }
+        else if (type === "lvgl_label") {
+            this.createSection("Content", true);
+            this.addLabeledInputWithPicker("Entity ID", "text", widget.entity_id || "", (v) => {
+                AppState.updateWidget(widget.id, { entity_id: v });
+            }, widget);
+            this.addLabeledInput("Text", "textarea", props.text || "", (v) => updateProp("text", v));
+            this.endSection();
+
+            this.createSection("Appearance", true);
+            this.addLabeledInput("Font Size", "number", props.font_size || 20, (v) => updateProp("font_size", parseInt(v, 10)));
+            this.addColorSelector("Color", props.color || "black", colors, (v) => updateProp("color", v));
+            this.addColorSelector("Background", props.bg_color || "transparent", colors, (v) => updateProp("bg_color", v));
+
+            this.addSelect("Font", props.font_family || "Roboto", ["Roboto", "Inter", "Open Sans", "Lato", "Montserrat", "Poppins", "Raleway", "Roboto Mono", "Ubuntu", "Nunito", "Playfair Display", "Merriweather", "Work Sans", "Source Sans Pro", "Quicksand"], (v) => updateProp("font_family", v));
+            this.addSelect("Weight", props.font_weight || 400, [100, 200, 300, 400, 500, 600, 700, 800, 900], (v) => updateProp("font_weight", parseInt(v, 10)));
+            this.addCheckbox("Italic", props.italic || false, (v) => updateProp("italic", v));
+
+            const alignOptions = ["TOP_LEFT", "TOP_CENTER", "TOP_RIGHT", "CENTER_LEFT", "CENTER", "CENTER_RIGHT", "BOTTOM_LEFT", "BOTTOM_CENTER", "BOTTOM_RIGHT"];
+            this.addSelect("Align", props.text_align || "CENTER", alignOptions, (v) => updateProp("text_align", v));
+
+            this.createSection("Border Style", false);
+            this.addLabeledInput("Border Width", "number", props.border_width || 0, (v) => updateProp("border_width", parseInt(v, 10)));
+            this.addColorSelector("Border Color", props.border_color || "black", colors, (v) => updateProp("border_color", v));
+            this.addLabeledInput("Corner Radius", "number", props.border_radius || 0, (v) => updateProp("border_radius", parseInt(v, 10)));
+            this.endSection();
+
             this.endSection();
         }
         else if (type === "progress_bar") {
