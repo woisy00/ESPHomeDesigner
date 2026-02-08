@@ -24,20 +24,29 @@ const render = (el, widget, context) => {
     }
     // For 'color', no grayscale filter is added
 
+    // For 'color', no grayscale filter is added
+
     el.style.boxSizing = "border-box";
-    el.style.backgroundColor = "#f5f5f5";
-    el.style.display = "flex";
-    el.style.alignItems = "center";
-    el.style.justifyContent = "center";
-    el.style.overflow = "hidden";
     el.style.color = "#666";
+    el.style.overflow = "visible"; // Allow resize handles to be seen
+
+    // Create inner wrapper to clip content
+    const content = document.createElement("div");
+    content.style.width = "100%";
+    content.style.height = "100%";
+    content.style.overflow = "hidden";
+    content.style.display = "flex";
+    content.style.alignItems = "center";
+    content.style.justifyContent = "center";
+    content.style.backgroundColor = "#f5f5f5";
+    content.style.backgroundImage = "";
 
     el.innerText = "";
-    el.style.backgroundImage = "";
+    el.appendChild(content);
 
     if (path) {
         const filename = path.split(/[/\\]/).pop() || path;
-        el.innerHTML = "";
+        content.innerHTML = "";
 
         const img = document.createElement("img");
         img.style.maxWidth = "100%";
@@ -48,7 +57,7 @@ const render = (el, widget, context) => {
 
         img.onerror = () => {
             const offlineNote = isOffline() ? "<br/><span style='color:#e67e22;font-size:8px;'>⚠️ Offline mode - preview in HA</span>" : "";
-            el.innerHTML = "<div style='text-align:center;color:#666;font-size:11px;padding:8px;line-height:1.4;'>" +
+            content.innerHTML = "<div style='text-align:center;color:#666;font-size:11px;padding:8px;line-height:1.4;'>" +
                 "🖼️<br/><strong>" + filename + "</strong><br/>" +
                 "<span style='color:#999;font-size:9px;'>" +
                 (invert ? "(inverted) " : "") +
@@ -68,7 +77,7 @@ const render = (el, widget, context) => {
                 overlay.style.fontSize = "8px";
                 overlay.style.borderRadius = "2px";
                 overlay.textContent = filename + " • " + widget.width + "×" + widget.height + "px";
-                el.appendChild(overlay);
+                content.appendChild(overlay);
             }
         };
 
@@ -87,9 +96,9 @@ const render = (el, widget, context) => {
 
         if (imgSrc) {
             img.src = imgSrc;
-            el.appendChild(img);
+            content.appendChild(img);
         } else {
-            el.innerHTML = "<div style='text-align:center;color:#666;font-size:11px;padding:8px;line-height:1.4;'>" +
+            content.innerHTML = "<div style='text-align:center;color:#666;font-size:11px;padding:8px;line-height:1.4;'>" +
                 "🖼️<br/><strong>" + filename + "</strong><br/>" +
                 "<span style='color:#999;font-size:9px;'>" +
                 (invert ? "(inverted) " : "") +
@@ -108,7 +117,7 @@ const render = (el, widget, context) => {
         if (filter) img.style.filter = filter.trim();
 
         img.onerror = () => {
-            el.innerHTML = "<div style='text-align:center;color:#666;font-size:11px;padding:8px;line-height:1.4;'>" +
+            content.innerHTML = "<div style='text-align:center;color:#666;font-size:11px;padding:8px;line-height:1.4;'>" +
                 "🖼️<br/><strong>Image</strong><br/>" +
                 "<span style='color:#999;font-size:9px;'>" +
                 (invert ? "(inverted) " : "") +
@@ -128,19 +137,19 @@ const render = (el, widget, context) => {
                 overlay.style.fontSize = "8px";
                 overlay.style.borderRadius = "2px";
                 overlay.textContent = filename;
-                el.appendChild(overlay);
+                content.appendChild(overlay);
             }
         };
 
         img.src = url;
-        el.appendChild(img);
+        content.appendChild(img);
     } else {
         const placeholder = document.createElement("div");
         placeholder.style.textAlign = "center";
         placeholder.style.color = "#aaa";
         placeholder.style.fontSize = "11px";
         placeholder.innerHTML = "🖼️<br/>Image Widget<br/><span style='font-size:9px;color:#ccc;'>Enter valid path to resize →</span>";
-        el.appendChild(placeholder);
+        content.appendChild(placeholder);
     }
 };
 

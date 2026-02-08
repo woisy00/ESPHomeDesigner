@@ -361,8 +361,9 @@ export class ESPHomeAdapter extends BaseAdapter {
 
             // Binary Sensors
             const binarySensorLinesOrig = [];
+
+            // Generate hardware binary sensors (buttons, etc.) only for non-package profiles
             if (!profile.isPackageBased && Generators.generateBinarySensorSection) {
-                // Note: touch_area widgets are now handled by the plugin's onExportBinarySensors hook
                 const legacyBinary = Generators.generateBinarySensorSection(profile, pages.length, displayId, []);
                 if (legacyBinary.length > 0 && legacyBinary[0].trim() === "binary_sensor:") {
                     binarySensorLinesOrig.push(...legacyBinary.slice(1).map(l => l.startsWith("  ") ? l.slice(2) : l));
@@ -371,10 +372,36 @@ export class ESPHomeAdapter extends BaseAdapter {
                 }
             }
 
+            // ALWAYS generate touch sensors for nav bars and touch areas, even for package-based profiles
+            const touchWidgets = allWidgets.filter(w => w.type === 'touch_area' || w.type === 'template_nav_bar');
+            let touchSensorContent = []; // Store for package injection
+            if (touchWidgets.length > 0 && Generators.generateBinarySensorSection) {
+                // Pass minimal profile (no features.buttons) so only touch sensors are generated
+                const touchBinary = Generators.generateBinarySensorSection({ features: {} }, pages.length, displayId, touchWidgets);
+                if (touchBinary.length > 0) {
+                    // Skip the "binary_sensor:" header if present, keep all content lines
+                    const startIdx = touchBinary[0]?.trim() === "binary_sensor:" ? 1 : 0;
+                    if (touchBinary.length > startIdx) {
+                        // For package-based profiles, store for placeholder injection
+                        // For non-package profiles, add to binarySensorLinesOrig as before
+                        if (profile.isPackageBased) {
+                            touchSensorContent = touchBinary.slice(startIdx);
+                        } else {
+                            binarySensorLinesOrig.push(`# Touch Area Binary Sensors`);
+                            binarySensorLinesOrig.push(...touchBinary.slice(startIdx).map(l => l.startsWith("  ") ? l.slice(2) : l));
+                        }
+                    }
+                }
+            }
+
+            // Store touch content for later package injection
+            this._pendingTouchSensors = touchSensorContent;
+
             // New: Allow plugins to register binary sensors
             PluginRegistry.onExportBinarySensors({ ...context, lines: binarySensorLinesOrig });
             const binarySensorLines = this.processPendingTriggers(binarySensorLinesOrig, pendingTriggers, isLvgl, "on_state");
-            if (binarySensorLines.length > 0) {
+            // Only add binary_sensor section for non-package profiles (or if there are non-touch sensors)
+            if (binarySensorLines.length > 0 && !profile.isPackageBased) {
                 lines.push("binary_sensor:");
                 lines.push(...binarySensorLines.flatMap(l => l.split('\n').map(sub => "  " + sub)));
             }
@@ -499,6 +526,22 @@ export class ESPHomeAdapter extends BaseAdapter {
                     const replacement = (hasHeader ? "" : indent + "lambda: |-\n") + lambdaContent.map(l => l.trim() ? indent + "  " + l : "").join("\n");
                     packageContent = packageContent.replace(placeholderRegex, replacement);
                 }
+            }
+
+            // Touch sensor placeholder replacement
+            const touchPlaceholderRegex = /^(\s*)# __TOUCH_SENSORS_PLACEHOLDER__/m;
+            const touchMatch = packageContent.match(touchPlaceholderRegex);
+            if (touchMatch && this._pendingTouchSensors && this._pendingTouchSensors.length > 0) {
+                // The placeholder is at indent level of list items (e.g., "  # __TOUCH...")
+                // Generator outputs lines with "  " prefix already
+                // We just need to pass through the lines as-is since they're already indented for binary_sensor
+                const touchReplacement = this._pendingTouchSensors
+                    .filter(l => l.trim() !== '') // Skip empty lines
+                    .join('\n');
+                packageContent = packageContent.replace(touchPlaceholderRegex, touchReplacement);
+            } else if (touchMatch) {
+                // Remove placeholder if no touch sensors to inject
+                packageContent = packageContent.replace(touchPlaceholderRegex, "");
             }
 
             packageContent = this.applyPackageOverrides(packageContent, profile, layout.orientation, hasLvgl, layout);
@@ -675,6 +718,13 @@ export class ESPHomeAdapter extends BaseAdapter {
 
         lines.push(`int currentPage = id(display_page);`);
 
+        // For LCD displays: declare static page tracker once, before page blocks
+        if (!isEpaper) {
+            lines.push(`static int last_rendered_page = -1;`);
+            lines.push(`bool page_changed = (last_rendered_page != currentPage);`);
+            lines.push(`if (page_changed) last_rendered_page = currentPage;`);
+        }
+
         pages.forEach((page, index) => {
             const pageName = page.name || `Page ${index + 1}`;
 
@@ -694,7 +744,19 @@ export class ESPHomeAdapter extends BaseAdapter {
             // Clear screen for this page
             const isDarkMode = page.dark_mode === 'dark' || (page.dark_mode === 'inherit' && layout.darkMode);
             lines.push(`  // Clear screen for this page`);
-            lines.push(`  it.fill(${isDarkMode ? 'COLOR_BLACK' : 'COLOR_WHITE'});`);
+            // For LCD displays: use filled_rectangle only on page change to avoid artifacts
+            // For e-paper: always use it.fill() (works correctly)
+            if (!isEpaper) {
+                lines.push(`  if (page_changed) {`);
+                lines.push(`    // Full clear on page change (prevents black artifacts)`);
+                lines.push(`    it.filled_rectangle(0, 0, it.get_width(), it.get_height(), ${isDarkMode ? 'COLOR_BLACK' : 'COLOR_WHITE'});`);
+                lines.push(`  } else {`);
+                lines.push(`    // Fast clear for same-page updates`);
+                lines.push(`    it.fill(${isDarkMode ? 'COLOR_BLACK' : 'COLOR_WHITE'});`);
+                lines.push(`  }`);
+            } else {
+                lines.push(`  it.fill(${isDarkMode ? 'COLOR_BLACK' : 'COLOR_WHITE'});`);
+            }
             lines.push(`  color_off = ${isDarkMode ? 'COLOR_BLACK' : 'COLOR_WHITE'};`);
             lines.push(`  color_on = ${isDarkMode ? 'COLOR_WHITE' : 'COLOR_BLACK'};`);
 

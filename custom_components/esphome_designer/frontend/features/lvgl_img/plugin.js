@@ -7,13 +7,22 @@ const render = (el, widget, { getColorStyle }) => {
     const pColor = getColorStyle(props.color || "black");
 
     el.innerHTML = "";
-    el.style.border = "1px dashed #ccc";
-    el.style.display = "flex";
-    el.style.alignItems = "center";
-    el.style.justifyContent = "center";
-    el.style.overflow = "hidden";
-    el.style.color = pColor;
-    el.style.backgroundColor = "#f0f0f0";
+    el.style.overflow = "visible"; // Allow resize handles to be seen
+
+    // Create wrapper for content clipping and styling
+    const content = document.createElement("div");
+    content.style.width = "100%";
+    content.style.height = "100%";
+    content.style.overflow = "hidden";
+    content.style.border = "1px dashed #ccc";
+    content.style.display = "flex";
+    content.style.alignItems = "center";
+    content.style.justifyContent = "center";
+    content.style.color = pColor;
+    content.style.backgroundColor = "#f0f0f0";
+    content.style.boxSizing = "border-box"; // Ensure border doesn't overflow
+
+    el.appendChild(content);
 
     const src = props.src || "symbol_image";
 
@@ -31,7 +40,7 @@ const render = (el, widget, { getColorStyle }) => {
     }
 
     label.style.fontSize = "12px";
-    el.appendChild(label);
+    content.appendChild(label);
 };
 
 const exportLVGL = (w, { common, convertColor }) => {

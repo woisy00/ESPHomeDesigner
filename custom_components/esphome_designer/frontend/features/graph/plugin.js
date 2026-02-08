@@ -447,10 +447,42 @@ const onExportComponents = (context) => {
     const graphWidgets = widgets.filter(w => w.type === 'graph');
 
     if (graphWidgets.length > 0) {
+        // First, define colors for all graph traces
+        lines.push("color:");
+        graphWidgets.forEach(w => {
+            const p = w.props || {};
+            const colorId = `graph_color_${w.id}`.replace(/-/g, "_");
+            // Determine color based on widget settings
+            let r = 0, g = 0, b = 0; // Default black
+            if (p.color && p.color !== 'theme_auto') {
+                if (p.color.startsWith('#')) {
+                    const hex = p.color.substring(1);
+                    r = parseInt(hex.substring(0, 2), 16) || 0;
+                    g = parseInt(hex.substring(2, 4), 16) || 0;
+                    b = parseInt(hex.substring(4, 6), 16) || 0;
+                } else if (p.color === 'white') {
+                    r = 255; g = 255; b = 255;
+                } else if (p.color === 'red') {
+                    r = 255; g = 0; b = 0;
+                } else if (p.color === 'green') {
+                    r = 0; g = 255; b = 0;
+                } else if (p.color === 'blue') {
+                    r = 0; g = 0; b = 255;
+                }
+            }
+            lines.push(`  - id: ${colorId}`);
+            lines.push(`    red_int: ${r}`);
+            lines.push(`    green_int: ${g}`);
+            lines.push(`    blue_int: ${b}`);
+        });
+        lines.push("");
+
+        // Now define the graphs
         lines.push("graph:");
         graphWidgets.forEach(w => {
             const p = w.props || {};
             const safeId = `graph_${w.id}`.replace(/-/g, "_");
+            const colorId = `graph_color_${w.id}`.replace(/-/g, "_");
             const duration = p.duration || "1h";
             const width = parseInt(w.width, 10);
             const height = parseInt(w.height, 10);
@@ -504,6 +536,7 @@ const onExportComponents = (context) => {
             if (gridEnabled && yGrid) lines.push(`    y_grid: ${yGrid}`);
             lines.push(`    traces:`);
             lines.push(`      - sensor: ${localSensorId}`);
+            lines.push(`        color: ${colorId}`);
             lines.push(`        line_thickness: ${lineThickness}`);
             if (lineType !== "SOLID") lines.push(`        line_type: ${lineType}`);
             if (continuous) lines.push(`        continuous: true`);

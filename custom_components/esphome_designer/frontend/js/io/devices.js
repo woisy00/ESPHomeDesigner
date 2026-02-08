@@ -23,7 +23,8 @@ export const SUPPORTED_DEVICE_IDS = [
   'm5stack_coreink',
   'trmnl',
   'waveshare_esp32_s3_touch_lcd_7',
-  'waveshare_esp32_s3_touch_lcd_4_3'
+  'waveshare_esp32_s3_touch_lcd_4_3',
+  'seeedstudio_sensecap_indicator'
 ];
 
 export const DEVICE_PROFILES = {
