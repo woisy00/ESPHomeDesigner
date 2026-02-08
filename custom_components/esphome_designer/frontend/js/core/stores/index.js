@@ -330,6 +330,16 @@ class AppStateFacade {
         ids.forEach(id => this.project.updateWidget(id, u));
         emit(EVENTS.STATE_CHANGED);
     }
+    updateWidgetsProps(ids, propUpdates) {
+        ids.forEach(id => {
+            const widget = this.getWidgetById(id);
+            if (widget) {
+                const newProps = { ...(widget.props || {}), ...propUpdates };
+                this.project.updateWidget(id, { props: newProps });
+            }
+        });
+        emit(EVENTS.STATE_CHANGED);
+    }
     deleteWidget(id) {
         const ids = id ? [id] : [...this.editor.selectedWidgetIds];
 

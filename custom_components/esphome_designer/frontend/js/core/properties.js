@@ -125,6 +125,8 @@ output["entries"] = {"days": converted_data[0]}
 output["closest_end_time"] = converted_data[1]
 `;
 
+const MIXED_VALUE = "__mixed__";
+
 export class PropertiesPanel {
     constructor() {
         this.panel = document.getElementById("propertiesPanel");
@@ -232,36 +234,21 @@ export class PropertiesPanel {
         }
 
         if (AppState.selectedWidgetIds.length > 1) {
-            this.panel.innerHTML = `
-                <div style='padding:16px; text-align:center;'>
-                    <div style="font-size: 24px; margin-bottom: 12px;">📑</div>
-                    <div style="font-weight: 600; color: var(--text);">${AppState.selectedWidgetIds.length} widgets selected</div>
-                    <div style="font-size: 11px; color: var(--muted); margin-top: 8px; margin-bottom: 16px;">
-                        Move, group, or delete the selection. Use the Lock toggle above to lock all.
-                    </div>
-                    <button id="multiDeleteBtn" class="btn btn-secondary btn-xs" style="background: var(--danger); color: white; border: none; width: 100%;">
-                        🗑 Delete Selected Widgets
-                    </button>
-                </div>
-    `;
-
-            const delBtn = this.panel.querySelector("#multiDeleteBtn");
-            if (delBtn) {
-                delBtn.addEventListener("click", () => {
-                    if (confirm(`Are you sure you want to delete ${AppState.selectedWidgetIds.length} widgets ? `)) {
-                        AppState.deleteWidget(null);
-                    }
-                });
-            }
+            this.renderMultiSelectProperties(AppState.selectedWidgetIds);
             return;
         }
 
         const widget = AppState.getSelectedWidget();
         if (!widget) return;
 
+        const type = widget.type;
+        const props = widget.props || {};
+        const colors = getAvailableColors();
 
-        const type = (widget.type || "").toLowerCase();
-
+        const updateProp = (key, value) => {
+            const newProps = { ...widget.props, [key]: value };
+            AppState.updateWidget(widget.id, { props: newProps });
+        };
         // Pretty title for the header
         let displayType = type;
         if (type === "nav_next_page") displayType = "next page";
@@ -336,6 +323,141 @@ export class PropertiesPanel {
         // === VISIBILITY CONDITIONS SECTION (BOTTOM) ===
         this.createSection("Visibility Conditions", false);
         this.addVisibilityConditions(widget);
+        this.endSection();
+    }
+
+    renderMultiSelectProperties(ids) {
+        const widgets = ids.map(id => AppState.getWidgetById(id)).filter(w => !!w);
+        if (widgets.length === 0) return;
+
+        this.panel.innerHTML = "";
+        this.createSection(`${widgets.length} Widgets Selected`, true);
+
+        // --- Transform Section ---
+        this.createSection("Transform", true);
+
+        const getCommonVal = (key) => {
+            const first = widgets[0][key];
+            return widgets.every(w => w[key] === first) ? first : MIXED_VALUE;
+        };
+
+        const updateWidgets = (key, val) => {
+            AppState.updateWidgets(ids, { [key]: val });
+        };
+
+        this.addCompactPropertyRow(() => {
+            this.addLabeledInput("X", "number", getCommonVal("x"), (v) => updateWidgets("x", parseInt(v, 10)));
+            this.addLabeledInput("Y", "number", getCommonVal("y"), (v) => updateWidgets("y", parseInt(v, 10)));
+        });
+        this.addCompactPropertyRow(() => {
+            this.addLabeledInput("Width", "number", getCommonVal("width"), (v) => updateWidgets("width", parseInt(v, 10)));
+            this.addLabeledInput("Height", "number", getCommonVal("height"), (v) => updateWidgets("height", parseInt(v, 10)));
+        });
+        this.endSection();
+
+        // --- Common Appearance ---
+        const commonAppearanceKeys = [
+            "color", "bg_color", "background_color", "border_width", "border_color", "border_radius",
+            "opacity", "font_size", "font_family", "font_weight", "text_align", "italic", "locked", "hidden"
+        ];
+
+        // Find keys that are present in at least ONE widget props OR are in our common whitelist
+        const allKeys = new Set();
+        widgets.forEach(w => Object.keys(w.props || {}).forEach(k => allKeys.add(k)));
+
+        const existingKeysUnion = widgets.map(w => Object.keys(w.props || {}));
+        const intersectionKeys = existingKeysUnion.reduce((a, b) => a.filter(k => b.includes(k)));
+
+        const displayKeysSet = new Set([...intersectionKeys, ...commonAppearanceKeys]);
+
+        const displayKeys = Array.from(displayKeysSet).filter(key => {
+            // Special check: border properties are valid for text/sensor/shape widgets
+            if (["border_width", "border_color", "border_radius"].includes(key)) {
+                const supportedTypes = ["text", "label", "sensor_text", "lvgl_label", "shape_rect", "rounded_rect", "shape_circle", "datetime"];
+                return widgets.every(w => supportedTypes.includes(w.type));
+            }
+
+            if (commonAppearanceKeys.includes(key)) {
+                const existsInOne = widgets.some(w => w.props && w.props[key] !== undefined);
+                if (existsInOne) return true;
+
+                // Fallback for border/font if not set yet but compatible
+                if (key.includes("font") || key === "color") {
+                    const textTypes = ["text", "label", "sensor_text", "lvgl_label", "datetime"];
+                    return widgets.every(w => textTypes.includes(w.type));
+                }
+            }
+
+            return intersectionKeys.includes(key);
+        });
+
+        if (displayKeys.length > 0) {
+            this.createSection("Shared Appearance", true);
+
+            const getCommonProp = (key) => {
+                const first = widgets[0].props ? widgets[0].props[key] : undefined;
+                return widgets.every(w => (w.props ? w.props[key] : undefined) === first) ? first : MIXED_VALUE;
+            };
+
+            const updateWidgetsProps = (key, val) => {
+                AppState.updateWidgetsProps(ids, { [key]: val });
+            };
+
+            // Filter out junk
+            const filteredDisplayKeys = displayKeys.filter(k => {
+                const firstVal = widgets.find(w => w.props && w.props[k] !== undefined)?.props[k];
+                const val = firstVal !== undefined ? firstVal : "";
+                return typeof val === 'number' || typeof val === 'string' || typeof val === 'boolean' || val === "";
+            });
+
+            // Sort keys
+            filteredDisplayKeys.sort((a, b) => {
+                if (a.includes("color") && !b.includes("color")) return -1;
+                if (b.includes("color") && !a.includes("color")) return 1;
+                return a.localeCompare(b);
+            });
+
+            filteredDisplayKeys.forEach(key => {
+                const label = key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                const val = getCommonProp(key);
+
+                // Detection for type
+                const sampleWidget = widgets.find(w => w.props && w.props[key] !== undefined) || widgets[0];
+                const type = sampleWidget.props && sampleWidget.props[key] !== undefined ? typeof sampleWidget.props[key] : 'string';
+
+                if (key.includes("color") || key === "bg" || key === "fg") {
+                    this.addColorSelector(label, val, getAvailableColors(), (v) => updateWidgetsProps(key, v));
+                } else if (type === 'boolean' || ["italic", "locked", "hidden"].includes(key)) {
+                    this.addCheckbox(label, val === MIXED_VALUE ? false : val, (v) => updateWidgetsProps(key, v));
+                } else {
+                    const inputType = (type === 'number' || key.includes("width") || key.includes("size") || key.includes("radius")) ? 'number' : 'text';
+                    this.addLabeledInput(label, inputType, val, (v) => {
+                        updateWidgetsProps(key, inputType === 'number' ? parseInt(v, 10) : v);
+                    });
+                }
+            });
+
+            this.endSection();
+        }
+
+        // --- Operations ---
+        this.createSection("Operations", false);
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn btn-secondary btn-xs";
+        delBtn.style.background = "var(--danger)";
+        delBtn.style.color = "white";
+        delBtn.style.border = "none";
+        delBtn.style.width = "100%";
+        delBtn.style.marginTop = "8px";
+        delBtn.innerHTML = "🗑 Delete Selected Widgets";
+        delBtn.onclick = () => {
+            if (confirm(`Delete ${ids.length} widgets?`)) {
+                AppState.deleteWidget();
+            }
+        };
+        this.getContainer().appendChild(delBtn);
+        this.endSection();
+
         this.endSection();
     }
 
@@ -2177,20 +2299,24 @@ export class PropertiesPanel {
         const hybrid = document.createElement("div");
         hybrid.className = "slider-hybrid";
 
+        const isMixed = value === MIXED_VALUE;
+
         const slider = document.createElement("input");
         slider.type = "range";
         slider.min = min;
         slider.max = max;
-        slider.value = value;
+        slider.value = isMixed ? min : value;
 
         const input = document.createElement("input");
         input.className = "prop-input";
         input.type = "number";
-        input.value = value;
+        input.value = isMixed ? "" : value;
         input.min = min;
         input.max = max;
+        if (isMixed) input.placeholder = "Mixed";
 
         slider.addEventListener("input", () => {
+            if (isMixed) input.placeholder = "";
             input.value = slider.value;
             onChange(parseInt(slider.value, 10));
         });
@@ -2264,6 +2390,8 @@ export class PropertiesPanel {
         lbl.className = "prop-label";
         lbl.textContent = label;
 
+        const isMixed = value === MIXED_VALUE;
+
         let input;
         if (type === "textarea") {
             // Multi-line text input
@@ -2272,15 +2400,25 @@ export class PropertiesPanel {
             input.style.minHeight = "60px";
             input.style.resize = "vertical";
             input.style.fontFamily = "inherit";
-            input.value = value || "";
+            input.value = isMixed ? "" : (value || "");
+            if (isMixed) input.placeholder = "Mixed Values";
         } else {
             input = document.createElement("input");
             input.className = "prop-input";
             input.type = type;
-            input.value = value;
+            input.value = isMixed ? "" : value;
+            if (isMixed) {
+                input.placeholder = "Mixed";
+                input.style.fontStyle = "italic";
+                input.style.color = "#888";
+            }
         }
 
         input.addEventListener("input", () => {
+            if (isMixed) {
+                input.style.fontStyle = "normal";
+                input.style.color = "inherit";
+            }
             onChange(input.value);
         });
 
@@ -2302,16 +2440,27 @@ export class PropertiesPanel {
         lbl.textContent = label;
         const select = document.createElement("select");
         select.className = "prop-input";
+
+        const isMixed = value === MIXED_VALUE;
+        if (isMixed) {
+            const mixedOpt = document.createElement("option");
+            mixedOpt.value = MIXED_VALUE;
+            mixedOpt.textContent = "(Mixed)";
+            mixedOpt.selected = true;
+            mixedOpt.disabled = true;
+            select.appendChild(mixedOpt);
+        }
+
         options.forEach(opt => {
             const o = document.createElement("option");
             if (typeof opt === 'object' && opt !== null) {
                 o.value = opt.value;
                 o.textContent = opt.label;
-                if (opt.value === value) o.selected = true;
+                if (!isMixed && opt.value === value) o.selected = true;
             } else {
                 o.value = opt;
                 o.textContent = opt;
-                if (opt === value) o.selected = true;
+                if (!isMixed && opt === value) o.selected = true;
             }
             select.appendChild(o);
         });
@@ -2357,12 +2506,22 @@ export class PropertiesPanel {
 
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
-        checkbox.checked = !!value;
+
+        const isMixed = value === MIXED_VALUE;
+        if (isMixed) {
+            checkbox.indeterminate = true;
+        } else {
+            checkbox.checked = !!value;
+        }
+
         checkbox.style.width = "16px"; // Bigger checkbox
         checkbox.style.height = "16px"; // Bigger checkbox
         checkbox.style.margin = "0";
         checkbox.style.cursor = "pointer";
-        checkbox.addEventListener("change", () => onChange(checkbox.checked));
+        checkbox.addEventListener("change", () => {
+            checkbox.indeterminate = false;
+            onChange(checkbox.checked);
+        });
 
         const span = document.createElement("span");
         span.textContent = label;
@@ -2792,9 +2951,11 @@ export class PropertiesPanel {
             return "#" + toHex(rv) + toHex(gv) + toHex(bv);
         };
 
+        const isMixed = value === MIXED_VALUE;
+
         // Initialize state
-        hex = parseColor(value);
-        const rgb = hexToRgb(hex);
+        hex = isMixed ? "" : parseColor(value);
+        const rgb = hexToRgb(isMixed ? "#000000" : hex);
         r = rgb.r; g = rgb.g; b = rgb.b;
 
         // Container for Preview + Inputs
@@ -2814,16 +2975,24 @@ export class PropertiesPanel {
         const previewBox = document.createElement("div");
         previewBox.style.width = "24px";
         previewBox.style.height = "24px";
-        previewBox.style.borderRadius = "3px";
-        previewBox.style.backgroundColor = hex;
-        previewBox.style.border = "1px solid var(--border-subtle)";
+        previewBox.style.borderRadius = "4px";
+        previewBox.style.border = "1px solid #ccc";
+        if (isMixed) {
+            previewBox.style.background = "linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%)";
+            previewBox.style.backgroundSize = "8px 8px";
+            previewBox.style.backgroundPosition = "0 0, 0 4px, 4px -4px, -4px 0px";
+            previewBox.style.backgroundColor = "white";
+        } else {
+            previewBox.style.backgroundColor = hex;
+        }
 
         const hexInput = document.createElement("input");
         hexInput.type = "text";
-        hexInput.value = hex.toUpperCase();
         hexInput.className = "prop-input";
         hexInput.style.flex = "1";
-        hexInput.style.fontFamily = "monospace";
+        hexInput.style.textTransform = "uppercase";
+        hexInput.value = isMixed ? "" : hex;
+        if (isMixed) hexInput.placeholder = "Mixed Colors";
 
         topRow.appendChild(previewBox);
         topRow.appendChild(hexInput);
