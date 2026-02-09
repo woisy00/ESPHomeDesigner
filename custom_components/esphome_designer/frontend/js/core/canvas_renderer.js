@@ -299,7 +299,7 @@ function getPageEffectiveDarkMode(page) {
     const pageDarkMode = page?.dark_mode;
     if (pageDarkMode === "dark") return true;
     if (pageDarkMode === "light") return false;
-    return !!AppState.settings.dark_mode;
+    return !!AppState.settings.darkMode;
 }
 
 function renderLvglGridOverlayToElement(element, layout, dims, isDark) {
@@ -531,7 +531,7 @@ export function getEffectiveDarkMode() {
     // "light" = force light mode
     if (pageDarkMode === "dark") return true;
     if (pageDarkMode === "light") return false;
-    return !!AppState.settings.dark_mode;
+    return !!AppState.settings.darkMode;
 }
 
 function renderLvglGridOverlay(canvasInstance, layout, dims, isDark) {
