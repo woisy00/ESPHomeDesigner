@@ -103,7 +103,21 @@ The Designer looks for specific metadata in the form of comments at the top of y
 1. Open the ESPHome Designer.
 2. Go to **Settings** (Gear icon) -> **Hardware**.
 3. Click **Upload Recipe** and select your YAML file.
-4. Once uploaded, your device will appear in the **Device Selection** dropdown.
+4. Once uploaded, your device will appear in the **Device Selection** dropdown (marked as **Imported**).
+
+---
+
+## 🛡️ Device Verification & "Untested" Status
+
+You might notice some devices in the list marked as **(untested)**.
+
+- **Verified Devices**: These have been physically verified by the maintainers to work flawlessly.
+- **Untested Profiles**: These are valid hardware recipes that strictly follow our standards but have not yet been physically verified by a project maintainer.
+
+**How to remove the "(untested)" badge?**
+We prioritize stability and honesty. We label things as untested until we *know* they work.
+If you use an "untested" profile and it works correctly on your physical device, please report it to us!
+Once verified, the project maintainers will add the device to the **Supported List**, and the "(untested)" badge will be removed in the next update.
 
 ---
 
