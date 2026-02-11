@@ -1,3 +1,19 @@
+## v1.0.0 RC4 - Polishing & Stability
+**Release Date:** February 11, 2026
+
+### 🐛 Bug Fixes & Refinements
+- **Custom Hardware Orientation**: Custom hardware profiles now correctly respect the defined orientation settings.
+- **Dark Mode Restoration**:
+  - Global Dark Mode functionality has been restored.
+  - **Sensor Bar & Progress Bar**: Fixed rendering issues to ensure these widgets look correct in Dark Mode.
+- **Drag & Drop Stability**: Prevented the widget panel from scrolling unintentionally during drag and drop operations.
+- **Shape Infill Fixed**: Resolved an issue where the infill color of shapes was not being applied correctly.
+- **System Logic**:
+  - **Deep Sleep**: Fixed regressions in Deep Sleep behavior.
+  - **Auto Cycling**: Resolved issues with the page auto-cycling logic.
+
+---
+
 ## v1.0.0 RC3 - Dynamic Sensor Bar & Hardware Clarity
 **Release Date:** February 8, 2026
 
